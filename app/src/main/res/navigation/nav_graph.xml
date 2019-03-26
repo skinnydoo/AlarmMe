@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/nav_graph"
+            app:startDestination="@id/map_dest"
+        >
+
+    <fragment
+            android:id="@+id/map_dest"
+            android:name="ca.poly.inf8405.alarmme.ui.MapFragment"
+            android:label="@string/explore"
+            tools:layout="@layout/fragment_map"
+            />
+</navigation>

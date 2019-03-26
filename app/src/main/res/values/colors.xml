@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--   color for the app bar and other primary UI elements -->
+    <color name="colorPrimary">@color/blue</color>
+    <!--   a darker variant of the primary color, used for
+           the status bar and contextual app bars -->
+    <color name="colorPrimaryDark">@color/dark_blue</color>
+    <!--   a secondary color for controls like checkboxes and text fields -->
+    <color name="colorAccent">@color/orange</color>
+
+    <!--white-->
+    <color name="white">#FFFFFFFF</color>
+    <!-- white ish -->
+    <color name="white_ish">#FAFAFA</color>
+    <!--dark blue-->
+    <color name="dark_blue">#1976d2</color>
+    <!--light blue-->
+    <color name="light_blue">#58a5f0</color>
+    <!--blue-->
+    <color name="blue">#2196f3</color>
+    <!--black-->
+    <color name="black">#000</color>
+    <!--mid black-->
+    <color name="midblack">#212121</color>
+    <!--light black-->
+    <color name="light_black">#303030</color>
+    <!--gray-->
+    <color name="gray">#757575</color>
+    <!--light gray-->
+    <color name="light_gray">#AAAAAA</color>
+    <!--lighter_gray-->
+    <color name="lighter_gray">#E0E0E0</color>
+    <!--dark_gray-->
+    <color name="dark_gray">#424242</color>
+    <!--darker_gray-->
+    <color name="darker_gray">#212121</color>
+    <!--green-->
+    <color name="green">#388E3C</color>
+    <!--pink-->
+    <color name="pink">#F15087</color>
+    <!--red-->
+    <color name="red">#B71C1C</color>
+    <!--orange-->
+    <color name="orange">#FF5722</color>
+    <!--yellow-->
+    <color name="yellow">#fdd835</color>
+    <!--dark yellow-->
+    <color name="dark_yellow">#c5a600</color>
+    <!--light yellow-->
+    <color name="light_yellow">#ffff6b</color>
+</resources>

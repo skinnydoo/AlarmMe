@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Default screen margins-->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!--FAB margin-->
+    <dimen name="fab_margin">16dp</dimen>
+
+    <!-- font sizes -->
+    <dimen name="font_xxxlarge">40sp</dimen>
+    <dimen name="font_xxlarge">32sp</dimen>
+    <dimen name="font_xlarge">24sp</dimen>
+    <dimen name="font_large">20sp</dimen>
+    <dimen name="font_normal">16sp</dimen>
+    <dimen name="font_small">12sp</dimen>
+
+    <!-- typical spacing between views -->
+    <dimen name="spacing_xxxhuge">100dp</dimen>
+    <dimen name="spacing_xxhuge">76dp</dimen>
+    <dimen name="spacing_huge">40dp</dimen>
+    <dimen name="spacing_larger">32dp</dimen>
+    <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_normal">16dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_double_tiny">8dp</dimen>
+    <dimen name="spacing_tiny">4dp</dimen>
+    <dimen name="spacing_tinier">2dp</dimen>
+
+    <!-- typical sizes of views -->
+    <!--Buttons -->
+    <dimen name="button_height_xxtall">100dp</dimen>
+    <dimen name="button_height_xtall">90dp</dimen>
+    <dimen name="button_height_taller">80dp</dimen>
+    <dimen name="button_height_tall">60dp</dimen>
+    <dimen name="button_height_normal">40dp</dimen>
+    <dimen name="button_height_short">32dp</dimen>
+    <dimen name="button_width_xxxlarge">200dp</dimen>
+    <dimen name="button_width_xxlarge">160dp</dimen>
+    <dimen name="button_width_xlarge">140dp</dimen>
+    <dimen name="button_width_larger">120dp</dimen>
+    <dimen name="button_width_large">100dp</dimen>
+
+    <!--TextViews-->
+    <dimen name="textview_height_tall">60dp</dimen>
+    <dimen name="textview_height_normal">40dp</dimen>
+    <dimen name="textview_height_short">32dp</dimen>
+
+    <!-- radius -->
+    <dimen name="default_corner_radius">5dp</dimen>
+</resources>
