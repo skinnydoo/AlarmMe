@@ -6,6 +6,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:fitsSystemWindows="false"
         tools:context=".ui.MainActivity"
         >
 
@@ -19,13 +20,10 @@
             app:navGraph="@navigation/nav_graph"
             />
 
-    <!--TODO: create and add menu file -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_nav_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:menu="@menu/menu_nav"
             />
-
-
 </LinearLayout>
