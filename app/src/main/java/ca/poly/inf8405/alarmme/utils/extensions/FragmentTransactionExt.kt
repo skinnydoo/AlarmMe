@@ -1,4 +1,4 @@
-package ca.poly.inf8405.alarmme.utils
+package ca.poly.inf8405.alarmme.utils.extensions
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment

@@ -7,7 +7,7 @@ buildscript {
         setup = [
                 compileSdk: 28,
                 buildTools: "28.0.3",
-                minSdk    : 23,
+                minSdk    : 21,
                 targetSdk : 28
         ]
 
@@ -22,10 +22,11 @@ buildscript {
                 lifecycle        : "2.0.0",
                 dagger           : '2.21',
                 play_services    : '16.0.0',
-                places           : '1.0.0',
+                places           : '1.1.0',
                 retrofit         : '2.5.0',
                 okhttp           : '3.14.0',
-                anko             : '0.10.8'
+                joda_time        : '2.10.1',
+                gson             : '2.8.5'
         ]
     }
 

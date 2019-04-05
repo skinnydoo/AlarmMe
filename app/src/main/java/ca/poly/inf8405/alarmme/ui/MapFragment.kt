@@ -2,6 +2,7 @@ package ca.poly.inf8405.alarmme.ui
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
@@ -11,7 +12,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
-import android.text.format.DateFormat
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,19 +21,31 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
 import ca.poly.inf8405.alarmme.BuildConfig
 import ca.poly.inf8405.alarmme.R
-import ca.poly.inf8405.alarmme.utils.*
+import ca.poly.inf8405.alarmme.di.Injectable
+import ca.poly.inf8405.alarmme.utils.LogWrapper
+import ca.poly.inf8405.alarmme.utils.extensions.action
+import ca.poly.inf8405.alarmme.utils.extensions.showToast
+import ca.poly.inf8405.alarmme.utils.extensions.snackBar
+import ca.poly.inf8405.alarmme.viewmodel.CheckPointViewModel
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_map.*
-import java.util.*
+import org.joda.time.DateTime
+import javax.inject.Inject
 
 
 /**
@@ -42,22 +55,36 @@ import java.util.*
  * to handle interaction events.
  *
  */
-class MapFragment : Fragment(), OnMapReadyCallback {
+class MapFragment : Fragment(),
+  Injectable,
+  NewCheckPointDialogFragment.OnNewCheckPointDialogListener,
+  OnMapReadyCallback {
   
-  // Callback to MainActivity
-  private var listener: OnMapFragmentInteractionListener? = null
+  @Inject
+  lateinit var viewModelFactory: ViewModelProvider.Factory
+  
   
   // Provides access to the Fused Location Provider API
-  private lateinit var fusedLocationClient: FusedLocationProviderClient
+  @Inject
+  lateinit var fusedLocationClient: FusedLocationProviderClient
   
   // Provides access tot eh Location Settings API
-  private lateinit var settingsClient: SettingsClient
+  @Inject
+  lateinit var settingsClient: SettingsClient
   
   // Stores parameters for requests tot the FusedLocationProviderApo
-  private lateinit var locationRequest: LocationRequest
+  @Inject
+  lateinit var locationRequest: LocationRequest
 
   // Used to determine if the devices has optimal location settings
-  private lateinit var locationSettingsRequest: LocationSettingsRequest
+  @Inject
+  lateinit var locationSettingsRequest: LocationSettingsRequest
+  
+  // Provides access to the Places Api Client
+  @Inject
+  lateinit var placesClient: PlacesClient
+  
+  private lateinit var checkPointViewModel: CheckPointViewModel
   
   // Callback for location events
   private lateinit var locationCallback: LocationCallback
@@ -66,26 +93,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
   private var currentLocation: Location? = null
   
   // To manipulate the Map SDK methods
-  private var map: GoogleMap? = null
+  lateinit var map: GoogleMap
   
   // To display snackBars
   private var rootView: View? = null
   
   private var allowLocationUpdates = true
   
-  override fun onAttach(context: Context) {
-    super.onAttach(context)
-    if (context is OnMapFragmentInteractionListener) {
-      listener = context
-    } else {
-      throw RuntimeException("$context must implement OnMapFragmentInteractionListener")
-    }
-  }
+  private var allowCameraUpdates = true
   
-  override fun onDetach() {
-    super.onDetach()
-    listener = null
-  }
   
   override fun onCreateView(
     inflater: LayoutInflater, container: ViewGroup?,
@@ -96,36 +112,28 @@ class MapFragment : Fragment(), OnMapReadyCallback {
   }
   
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    super.onViewCreated(view, savedInstanceState)
-    
     mapView?.run {
+      isHapticFeedbackEnabled = true
       onCreate(savedInstanceState)
-      getMapAsync(this@MapFragment) // to get notified when the map is ready to use
+      getMapAsync(this@MapFragment) // get notified when the map is ready to use
     }
   
     // Get a reference to the rootView
     rootView = activity?.findViewById(android.R.id.content)
+    
+    checkPointViewModel = ViewModelProviders.of(this, viewModelFactory)[CheckPointViewModel::class.java]
+    subscribeToModel()
+    // Kick off the process of building the LocationCallback
+    createLocationCallback()
+    
   }
   
-  override fun onActivityCreated(savedInstanceState: Bundle?) {
-    super.onActivityCreated(savedInstanceState)
-    
-    LogWrapper.d("Initializing the FusedProviderClient")
-    (activity as Context).let {
-      fusedLocationClient = LocationServices.getFusedLocationProviderClient(it)
-      settingsClient = LocationServices.getSettingsClient(it)
-    }
-    
-    LogWrapper.d("Kicking off the process of building the LocationCallback, LocationRequest and " +
-      "LocationSettingsRequest...")
-    // Kick off the process of building the LocationCallback, LocationRequest, and
-    // LocationSettingsRequest objects
-    createLocationRequest()
-    createLocationCallback()
-    buildLocationSettingsRequest()
-    
-    LogWrapper.d("Exit")
+  private fun subscribeToModel() {
+    checkPointViewModel.checkPoints.observe(viewLifecycleOwner, Observer {
+      // TODO: show checkpoints on screen
+    })
   }
+  
   
   override fun onStart() {
     super.onStart()
@@ -182,53 +190,46 @@ class MapFragment : Fragment(), OnMapReadyCallback {
    * it inside the SupportMapFragment. This method will only be triggered once the user has
    * installed Google Play services and returned to the app.
    */
-  override fun onMapReady(googleMap: GoogleMap) {
+  override fun onMapReady(googleMap: GoogleMap?) {
+    // return early if the map was not initialised properly
+    map = googleMap ?: return
     LogWrapper.d("Map is ready...making initial setup")
-    map = googleMap.apply {
+    with(map) {
       mapType = GoogleMap.MAP_TYPE_NORMAL
-      animateCamera(CameraUpdateFactory.zoomTo(10F))
-      uiSettings.isZoomControlsEnabled = false
-      uiSettings.isZoomGesturesEnabled = true
-      uiSettings.isRotateGesturesEnabled = true
-      uiSettings.isTiltGesturesEnabled = true
-      uiSettings.isScrollGesturesEnabled = true
+      moveCamera(CameraUpdateFactory.zoomTo(10F))
+      setOnMapLongClickListener {
+        handleMapLongClick(it)
+      }
     }
     LogWrapper.d("Exit")
   }
   
-  /**
-   * Sets up the location request. This app uses ACCESS_FINE_LOCATION, as defined in
-   * the AndroidManifest.xml.
-   *
-   * When the ACCESS_FINE_LOCATION setting is specified, combined with a fast update
-   * interval (5 seconds), the Fused Location Provider API returns location updates that are
-   * accurate to within a few feet.
-   */
-  private fun createLocationRequest() {
-    LogWrapper.d("Configuring the Location Request....")
-    locationRequest = LocationRequest().apply {
-      /**
-       * Sets the desired interval for active location updates. This interval is inexact.
-       * We may not receive updates at all if no location sources are available, or we
-       * may receive them slower than requested. We may also receive update faster than
-       * requested if other application are requesting location updates at a faster interval
-       */
-      LogWrapper.d("Update intervals -> ${UPDATE_INTERVAL_IN_MILLISECONDS.seconds} seconds")
-      interval = UPDATE_INTERVAL_IN_MILLISECONDS
+  private fun handleMapLongClick(latLng: LatLng) {
+    LogWrapper.d("Map Clicked at position -> $latLng")
+    mapView.performHapticFeedback(
+      HapticFeedbackConstants.VIRTUAL_KEY,
+      HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+    
+    showAddCheckPointDialog(latLng)
+  }
   
-      /**
-       * Sets the fastest rate for active location updates. This interval is exact, and the
-       * application will never receive update faster than this value
-       */
-      LogWrapper.d("Fastest update rate -> ${FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS.seconds} " +
-        "seconds")
-      fastestInterval = FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS
-      
-      LogWrapper.d("Priority -> PRIORITY_HIGH_ACCURACY")
-      priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-      
-    }
-    LogWrapper.d("Exit")
+  private fun showAddCheckPointDialog(latLng: LatLng) {
+    val newCheckPointDialog =
+      NewCheckPointDialogFragment.newInstance("", latLng)
+    newCheckPointDialog.listener = this
+    newCheckPointDialog.show(activity?.supportFragmentManager, null)
+  
+  }
+  
+  override fun onAddCheckPoint(checkPointName: String, latLng: LatLng) {
+  
+    map.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+  
+    map.addMarker(
+      MarkerOptions()
+        .position(latLng)
+        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+    )
   }
   
   /**
@@ -242,28 +243,18 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         currentLocation = locationResult.lastLocation
         currentLocation?.let {
           val latLng = LatLng(it.latitude, it.longitude)
-          
-          val c = Calendar.getInstance()
-          val dateTime = DateFormat.format("EEE, MMM d ''yy, HH:mm:ss", c.time).toString()
+          if (allowCameraUpdates) {
+            map.moveCamera(CameraUpdateFactory.newLatLng(latLng))
+            allowCameraUpdates = false
+          }
+  
+          val dateTime = DateTime.now().toString("EEE, MMM d ''yy, HH:mm:ss")
           LogWrapper.d("Current Location -> $latLng, Last update time -> $dateTime")
-          
-          // TODO animate camera only once
-          map?.animateCamera(CameraUpdateFactory.newLatLng(latLng))
-          /*map?.addMarker(
-            MarkerOptions()
-              .position(latLng)
-              .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-          )*/
         }
       }
     }
     
     LogWrapper.d("Exit")
-  }
-  
-  private fun buildLocationSettingsRequest() {
-    locationSettingsRequest =
-      LocationSettingsRequest.Builder().addLocationRequest(locationRequest).build()
   }
   
   
@@ -328,13 +319,22 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         // app, which makes the Activity useless.
         rootView?.snackBar(R.string.permission_denied_explanation, Snackbar.LENGTH_INDEFINITE) {
           action(R.string.action_settings) {
-            // Build intent that displays the App settings screen.
-            val intent = Intent().apply {
-              action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-              data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-              flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            try {
+              // Build intent that displays the App settings screen.
+              val intent = Intent().apply {
+                action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+              }
+              startActivity(intent)
+            } catch (e: ActivityNotFoundException) {
+  
+              val alternateIntent =  Intent().apply {
+                action = android.provider.Settings.ACTION_SETTINGS
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+              }
+              startActivity(alternateIntent)
             }
-            startActivity(intent)
           }
         }
     }
@@ -351,7 +351,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     settingsClient.checkLocationSettings(locationSettingsRequest)
       .addOnSuccessListener {
         LogWrapper.d("Settings OK. Requesting location update...")
-        map?.isMyLocationEnabled = true
+        //map?.isMyLocationEnabled = true
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
         LogWrapper.d("Location update requested.")
       }
@@ -422,22 +422,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
   }
   
-  // TODO: Rename method, update argument and hook method into UI event
-  fun onButtonPressed(uri: Uri) {
-    listener?.onFragmentInteraction(uri)
-  }
-  
-  /**
-   * This interface must be implemented by activities that contain this
-   * fragment to allow an interaction in this fragment to be communicated
-   * to the activity and potentially other fragments contained in that
-   * activity.
-   */
-  interface OnMapFragmentInteractionListener {
-    // TODO: Update argument type and name
-    fun onFragmentInteraction(uri: Uri)
-  }
-  
   
   companion object {
     //region Permission request code
@@ -450,17 +434,5 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     
     //endregion
     
-    //region Location request update interval
-    
-    // The desired interval for location updates. Inexact.
-    // Updates may be more or less frequent.
-    private const val UPDATE_INTERVAL_IN_MILLISECONDS = 10000L
-    
-    // The fastest rate for active location updates. Exact.
-    // Updates will never be more frequent than this value
-    private const val FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
-      UPDATE_INTERVAL_IN_MILLISECONDS / 2
-    
-    //endregion
   }
 }

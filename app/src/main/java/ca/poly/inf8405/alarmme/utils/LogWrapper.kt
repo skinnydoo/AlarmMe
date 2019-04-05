@@ -13,7 +13,7 @@ object LogWrapper {
 	 * debug variable enables/disables all log messages to logcat
 	 * Useful to disable prior to app store submission
 	 */
-    private const val debug = true
+    var debug = false
     private const val stackTraceLevelsUp = 3
 
     /*

@@ -19,6 +19,7 @@
     <dimen name="spacing_xxxhuge">100dp</dimen>
     <dimen name="spacing_xxhuge">76dp</dimen>
     <dimen name="spacing_huge">40dp</dimen>
+    <dimen name="spacing_xlarger">36dp</dimen>
     <dimen name="spacing_larger">32dp</dimen>
     <dimen name="spacing_large">24dp</dimen>
     <dimen name="spacing_normal">16dp</dimen>
@@ -48,4 +49,5 @@
 
     <!-- radius -->
     <dimen name="default_corner_radius">5dp</dimen>
+    <dimen name="seekbar_height">25dp</dimen>
 </resources>

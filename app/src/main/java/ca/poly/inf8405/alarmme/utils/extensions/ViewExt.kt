@@ -1,4 +1,4 @@
-package ca.poly.inf8405.alarmme.utils
+package ca.poly.inf8405.alarmme.utils.extensions
 
 import android.content.Context
 import android.view.View

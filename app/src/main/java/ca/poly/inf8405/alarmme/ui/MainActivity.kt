@@ -1,33 +1,33 @@
 package ca.poly.inf8405.alarmme.ui
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import ca.poly.inf8405.alarmme.R
+import com.google.android.libraries.places.api.Places
+import dagger.android.AndroidInjector
+import dagger.android.DispatchingAndroidInjector
+import dagger.android.support.HasSupportFragmentInjector
+import javax.inject.Inject
 
-class MainActivity : AppCompatActivity(), MapFragment.OnMapFragmentInteractionListener {
+class MainActivity : AppCompatActivity(),
+  HasSupportFragmentInjector {
+  
+  @Inject
+  lateinit var dispatchingAndroidInjector: DispatchingAndroidInjector<Fragment>
   
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    //requestWindowFeature(Window.FEATURE_NO_TITLE)
-    /*with(window) {
-      addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-      addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
-      requestFeature(Window.FEATURE_CONTENT_TRANSITIONS)
-      enterTransition = Explode()
-      exitTransition = Slide()
-    }*/
     setContentView(R.layout.activity_main)
+    
+    val apiKey = getString(R.string.google_maps_api_key)
+    
+    // Initialize Places
+    if(!Places.isInitialized()) {
+      Places.initialize(applicationContext, apiKey)
+    }
   }
   
-  
-  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-    super.onActivityResult(requestCode, resultCode, data)
-  }
-  
-  override fun onFragmentInteraction(uri: Uri) {
-  
-  }
+  override fun supportFragmentInjector(): AndroidInjector<Fragment> = dispatchingAndroidInjector
   
 }

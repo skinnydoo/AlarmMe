@@ -57,7 +57,7 @@ dependencies {
     implementation "androidx.legacy:legacy-preference-v14:${versions.androidX}"
 
     // General test components
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0-beta01'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
@@ -72,24 +72,26 @@ dependencies {
     kapt "androidx.lifecycle:lifecycle-compiler:${versions.lifecycle}"
     testImplementation "androidx.arch.core:core-testing:${versions.lifecycle}"
 
-    // Volley components
-    /*implementation 'com.android.volley:volley:1.1.1'
-    implementation 'com.google.code.gson:gson:2.8.5'*/
-
     // Okhttp component
-    implementation "com.squareup.okhttp3:okhttp:${versions.okhttp}"
+    /*implementation "com.squareup.okhttp3:okhttp:${versions.okhttp}"*/
     implementation "com.squareup.okhttp3:logging-interceptor:${versions.okhttp}"
 
+    // GSON component
+    implementation "com.google.code.gson:gson:${versions.gson}"
+
     // Retrofit component
-    implementation("com.squareup.retrofit2:retrofit:${versions.retrofit}") {
+    implementation("com.squareup.retrofit2:retrofit:${versions.retrofit}") /*{
         // exclude Retrofit’s OkHttp peer-dependency module and define our own module import
         exclude module: 'okhttp'
-    }
+    }*/
     implementation "com.squareup.retrofit2:converter-gson:${versions.retrofit}"
 
     // Dagger components
     implementation "com.google.dagger:dagger:${versions.dagger}"
     kapt "com.google.dagger:dagger-compiler:${versions.dagger}"
+    implementation "com.google.dagger:dagger-android:${versions.dagger}"
+    implementation "com.google.dagger:dagger-android-support:${versions.dagger}"
+    kapt "com.google.dagger:dagger-android-processor:${versions.dagger}"
 
     // Location Services components
     implementation "com.google.android.gms:play-services-maps:16.1.0"
@@ -97,8 +99,9 @@ dependencies {
     implementation "com.google.android.gms:play-services-awareness:${versions.play_services}"
     implementation "com.google.android.libraries.places:places:${versions.places}"
 
-    // Anko Commons component
-    implementation "org.jetbrains.anko:anko-commons:${versions.anko}"
+
+    // Joda Time Component
+    implementation "joda-time:joda-time:${versions.joda_time}"
 
 }
 

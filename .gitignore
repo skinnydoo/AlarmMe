@@ -150,6 +150,9 @@ fastlane/screenshots
 fastlane/test_output
 fastlane/readme.md
 
+# Api key
+app/src/main/res/values/api_keys.xml
+
 # -------------------------
 # BEGIN Whitelisted Files
 # -------------------------
