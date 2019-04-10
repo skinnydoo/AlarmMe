@@ -30,10 +30,12 @@ import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.android.libraries.places.internal.it
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.fragment_map.*
 import javax.inject.Inject
 
-open class BaseFragment: Fragment(), Injectable {
+abstract class BaseFragment: Fragment(), Injectable {
   
   // Provides access to the Fused Location Provider API
   @Inject
@@ -55,9 +57,6 @@ open class BaseFragment: Fragment(), Injectable {
   @Inject
   lateinit var placesClient: PlacesClient
   
-  // Stores a geographical location
-  protected var currentLocation: Location? = null
-  
   protected var allowLocationUpdates = true
   
   // Callback for location events
@@ -72,19 +71,27 @@ open class BaseFragment: Fragment(), Injectable {
     rootView = activity?.findViewById(android.R.id.content)
   }
   
+  override fun onStart() {
+    super.onStart()
+    
+    if (!checkPermissions()) {
+      requestPermissions()
+    } else if (allowLocationUpdates) {
+      startLocationUpdates()
+      onPermissionGranted()
+    }
+  }
+  
   /**
    * Create a callback for receiving location events
    */
-  protected fun createLocationCallback(fn: (LatLng) -> Unit) {
+  protected fun createLocationCallback(fn: (Location) -> Unit) {
     LogWrapper.d("Configuring Location Callback...")
     locationCallback = object : LocationCallback() {
-      
       override fun onLocationResult(locationResult: LocationResult) {
-        currentLocation = locationResult.lastLocation
-        currentLocation?.let { fn(LatLng(it.latitude, it.longitude)) }
+        fn(locationResult.lastLocation)
       }
     }
-    
     LogWrapper.d("Exit")
   }
   
@@ -146,6 +153,7 @@ open class BaseFragment: Fragment(), Injectable {
       grantResults[0] == PackageManager.PERMISSION_GRANTED -> {
         // Permission granted...start location updates
         startLocationUpdates()
+        onPermissionGranted()
       }
       
       else -> // Permission denied
@@ -186,7 +194,6 @@ open class BaseFragment: Fragment(), Injectable {
     settingsClient.checkLocationSettings(locationSettingsRequest)
       .addOnSuccessListener {
         LogWrapper.d("Settings OK. Requesting location update...")
-        //map?.isMyLocationEnabled = true
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
         LogWrapper.d("Location update requested.")
       }
@@ -258,6 +265,8 @@ open class BaseFragment: Fragment(), Injectable {
       
     }
   }
+  
+  abstract fun onPermissionGranted()
   
   companion object {
     //region Permission request code

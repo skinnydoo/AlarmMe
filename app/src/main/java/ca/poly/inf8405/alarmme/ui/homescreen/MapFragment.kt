@@ -1,5 +1,7 @@
 package ca.poly.inf8405.alarmme.ui.homescreen
 
+import android.annotation.SuppressLint
+import android.location.Location
 import android.os.Bundle
 import android.os.Handler
 import android.os.ResultReceiver
@@ -7,6 +9,7 @@ import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import ca.poly.inf8405.alarmme.R
@@ -16,12 +19,18 @@ import ca.poly.inf8405.alarmme.ui.service.Constants
 import ca.poly.inf8405.alarmme.ui.service.FetchAddressIntentService
 import ca.poly.inf8405.alarmme.utils.LogWrapper
 import ca.poly.inf8405.alarmme.utils.extensions.observeOnce
+import ca.poly.inf8405.alarmme.utils.extensions.placeSelected
+import ca.poly.inf8405.alarmme.utils.extensions.toPx
 import ca.poly.inf8405.alarmme.viewmodel.CheckPointViewModel
 import ca.poly.inf8405.alarmme.vo.CheckPoint
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.*
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.internal.it
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_map.*
 import org.joda.time.DateTime
 
@@ -33,9 +42,14 @@ class MapFragment : BaseFragment(),
   private val checkPointViewModel: CheckPointViewModel by lazy { (activity as MainActivity).obtainCheckPointViewModel() }
   
   // To manipulate the Map SDK methods
-  private lateinit var map: GoogleMap
+  private var map: GoogleMap? = null
   private val markers = mutableListOf<Marker>()
   private var allowCameraUpdates = true
+  
+  // Stores a geographical location
+  private var currentLocation: Location? = null
+  
+  private var autocompleteSearchBar: AutocompleteSupportFragment? = null
   
   // Receiver registered with this fragment to get the response from FetchAddressIntentService.
   private lateinit var resultReceiver: AddressResultReceiver
@@ -53,6 +67,10 @@ class MapFragment : BaseFragment(),
     allowCameraUpdates = true
     resultReceiver = AddressResultReceiver(Handler())
     
+    autocompleteSearchBar = requireActivity().supportFragmentManager
+      .findFragmentById(R.id.places_autocomplete_fragment) as? AutocompleteSupportFragment
+    LogWrapper.d("Search bar -> $autocompleteSearchBar")
+    
     initView(savedInstanceState)
     subscribeToModel()
     // Kick off the process of building the LocationCallback
@@ -68,17 +86,52 @@ class MapFragment : BaseFragment(),
       onCreate(savedInstanceState)
       getMapAsync(this@MapFragment) // get notified when the map is ready to use
     }
+  
+    activity?.currentLocationFab?.hide()
+  
+    // Remove the provided search icon from the search bar
+    (autocompleteSearchBar?.view as? LinearLayout)?.getChildAt(0)?.visibility = View.GONE
+    // Add a custom hint
+    autocompleteSearchBar?.setHint(getString(R.string.where_to))
+    autocompleteSearchBar?.a?.setPadding(4.toPx().toInt(), 0, 0, 0)
+    val params = LinearLayout.LayoutParams(
+      LinearLayout.LayoutParams.MATCH_PARENT,
+      LinearLayout.LayoutParams.MATCH_PARENT
+    )
+    params.marginStart = 28.toPx().toInt()
+    autocompleteSearchBar?.a?.layoutParams  = params
+  
+    // Specify the types of place data to return.
+    autocompleteSearchBar?.setPlaceFields(listOf(
+      Place.Field.ID,
+      Place.Field.NAME,
+      Place.Field.LAT_LNG,
+      Place.Field.ADDRESS
+    ))
+    bindEvents()
+  }
+  
+  private fun bindEvents() {
+    // Set up a PlaceSelectionListener to handle the response.
+    autocompleteSearchBar?.placeSelected(
+      onSuccess = {
+        LogWrapper.d("Selected place ->$name & Lat/Lng -> $latLng")
+        latLng?.let {
+          showAddCheckPointDialog(it)
+        }
+      },
+      
+      onError = {
+        LogWrapper.d("An Error occurred -> $status")
+      }
+    )
+    
+    activity?.searchFab?.setOnClickListener { autocompleteSearchBar?.a?.performClick() }
   }
   
   override fun onStart() {
     super.onStart()
     mapView?.onStart()
-    
-    if (!checkPermissions()) {
-      requestPermissions()
-    } else if (allowLocationUpdates) {
-      startLocationUpdates()
-    }
   }
   
   override fun onResume() {
@@ -129,14 +182,34 @@ class MapFragment : BaseFragment(),
     // return early if the map was not initialised properly
     map = googleMap ?: return
     LogWrapper.d("Map is ready...making initial setup")
-    with(map) {
+    with(googleMap) {
       mapType = GoogleMap.MAP_TYPE_NORMAL
+      uiSettings.isCompassEnabled = false
+      uiSettings.isMyLocationButtonEnabled = false
       moveCamera(CameraUpdateFactory.zoomTo(12F))
       setOnMapLongClickListener {
         handleMapLongClick(it)
       }
     }
+    onPermissionGranted()
     LogWrapper.d("Exit")
+  }
+  
+  @SuppressLint("MissingPermission")
+  override fun onPermissionGranted() {
+    map?.let { map ->
+      map.isMyLocationEnabled = true
+     activity?.currentLocationFab?.show()
+      activity?.currentLocationFab?.setOnClickListener {
+        currentLocation?.let { location ->
+          map.animateCamera(
+            CameraUpdateFactory.newLatLngZoom(
+              LatLng(location.latitude, location.longitude), 15f
+            )
+          )
+        }
+      }
+    }
   }
   
   private fun handleMapLongClick(latLng: LatLng) {
@@ -164,14 +237,17 @@ class MapFragment : BaseFragment(),
     checkPointViewModel.addCheckPoint(checkPoint)
   }
   
-  private fun locationCallback(latLng: LatLng) {
-    if (allowCameraUpdates) {
-      map.moveCamera(CameraUpdateFactory.newLatLng(latLng))
-      allowCameraUpdates = false
+  private fun locationCallback(location: Location) {
+    currentLocation = location
+    currentLocation?.let {
+      val latLng = LatLng(it.latitude, it.longitude)
+      if (allowCameraUpdates) {
+        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+        allowCameraUpdates = false
+      }
+      val dateTime = DateTime.now().toString("EEE, MMM d ''yy, HH:mm:ss")
+      LogWrapper.d("Current Location -> $latLng, Last update time -> $dateTime")
     }
-    
-    val dateTime = DateTime.now().toString("EEE, MMM d ''yy, HH:mm:ss")
-    LogWrapper.d("Current Location -> $latLng, Last update time -> $dateTime")
   }
   
   private fun subscribeToModel() {
@@ -192,11 +268,10 @@ class MapFragment : BaseFragment(),
   
   private fun addMarkerOnMap(checkPoint: CheckPoint) {
     
-    map.apply {
+    map?.apply {
       val latLng = LatLng(checkPoint.latitude, checkPoint.longitude)
       
-      animateCamera(CameraUpdateFactory.zoomTo(15f))
-      animateCamera(CameraUpdateFactory.newLatLng(latLng))
+      animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
       val marker = addMarker(
         MarkerOptions()
           .position(latLng)

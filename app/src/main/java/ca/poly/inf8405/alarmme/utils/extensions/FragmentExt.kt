@@ -4,6 +4,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
+import com.google.android.gms.common.api.Status
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.internal.fn
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 
 /**
  * Extensions for simpler adding fragments
@@ -68,4 +73,20 @@ fun Fragment.replaceChildFragment(
     replace(frameId, fragment, tag)
     setTransition(transition)
   }
+}
+
+inline fun AutocompleteSupportFragment.placeSelected(
+  crossinline onSuccess: Place.() -> Unit,
+  crossinline onError: Status.() -> Unit
+) {
+  setOnPlaceSelectedListener(object : PlaceSelectionListener {
+  
+    override fun onPlaceSelected(place: Place) {
+      onSuccess(place)
+    }
+  
+    override fun onError(status: Status) {
+      onError(status)
+    }
+  })
 }
