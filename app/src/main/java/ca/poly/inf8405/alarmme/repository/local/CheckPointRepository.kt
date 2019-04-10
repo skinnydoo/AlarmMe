@@ -1,9 +1,13 @@
 package ca.poly.inf8405.alarmme.repository.local
 
 import androidx.lifecycle.LiveData
+import ca.poly.inf8405.alarmme.api.ApiResponse
+import ca.poly.inf8405.alarmme.api.WeatherService
 import ca.poly.inf8405.alarmme.db.CheckPointDao
 import ca.poly.inf8405.alarmme.diskIOThread
+import ca.poly.inf8405.alarmme.repository.NetworkBoundResource
 import ca.poly.inf8405.alarmme.vo.CheckPoint
+import ca.poly.inf8405.alarmme.vo.Resource
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,21 +17,42 @@ import javax.inject.Singleton
  */
 @Singleton
 class CheckPointRepository @Inject constructor(
-  private val checkPointDao: CheckPointDao
+  private val checkPointDao: CheckPointDao,
+  private val weatherService: WeatherService
 ) {
   
-  // region database LiveData query
-  
+  // region Database LiveData query
   /**
    * Get all CheckPoints
    */
   val allCheckPoints: LiveData<List<CheckPoint>>
     get() = checkPointDao.getAllCheckPoints()
   
+  val allActiveCheckPoints: LiveData<List<CheckPoint>>
+    get() = checkPointDao.findAllActiveCheckPoints()
+  
   // endregion
   
-  // region database insertion
+  // region Network Bound Resource queries
+  fun loadCurrentWeather(checkPoint: CheckPoint) : LiveData<Resource<CheckPoint>> {
+    return object : NetworkBoundResource<CheckPoint, CheckPoint.Weather>() {
+      override fun loadFromDb(): LiveData<CheckPoint> =
+        checkPointDao.findCheckPointByLatLng(checkPoint.latitude, checkPoint.longitude)
+      
+      override fun shouldFetch(data: CheckPoint?): Boolean = data == null
+      
+      override fun createCall(): LiveData<ApiResponse<CheckPoint.Weather>> =
+        weatherService.getCurrentWeather(checkPoint.latitude, checkPoint.longitude)
+      
+      override fun saveCallResult(item: CheckPoint.Weather) {
+        checkPoint.weather = item
+        checkPointDao.insert(checkPoint)
+      }
+      
+    }.asLiveData()
+  }
   
+  // region Database Insertion
   /**
    * Insert a CheckPoint item
    * This method will be called on a non-UI thread cause other else the app will crash.
@@ -43,10 +68,9 @@ class CheckPointRepository @Inject constructor(
   fun insert(checkPoints: List<CheckPoint>) = diskIOThread {
     checkPointDao.insertAll(checkPoints)
   }
-  
   // endregion
   
-  // region database deletion
+  // region Database Deletion
   
   /**
    * Delete a CheckPoint from the database
@@ -55,6 +79,5 @@ class CheckPointRepository @Inject constructor(
   fun delete(checkPoint: CheckPoint) = diskIOThread {
     checkPointDao.delete(checkPoint)
   }
-  
   // endregion
 }

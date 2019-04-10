@@ -18,5 +18,12 @@
     <string name="longitude">Longitude: </string>
     <string name="city">City: </string>
     <string name="radius">Radius: </string>
-    <string name="default_radius">500m</string>
+    <string name="default_radius">600m</string>
+    <string name="no_geocoder_available" translatable="false">No geocoder available</string>
+    <string name="no_address_found">Sorry, no address found</string>
+    <string name="no_receiver_received">No receiver received. There is nowhere to send the results</string>
+    <string name="no_location_data_provided">No location data provided</string>
+    <string name="service_not_available" >Sorry, the service is not available</string>
+    <string name="invalid_lat_long_used">Invalid latitude or longitude used</string>
+    <string name="name_length_error">Name should have have a minimum of 4 characters</string>
 </resources>

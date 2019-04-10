@@ -45,6 +45,8 @@
     <color name="red">#B71C1C</color>
     <!--orange-->
     <color name="orange">#FF5722</color>
+    <!--orange-->
+    <color name="light_orange">#3FFF774C</color>
     <!--yellow-->
     <color name="yellow">#fdd835</color>
     <!--dark yellow-->

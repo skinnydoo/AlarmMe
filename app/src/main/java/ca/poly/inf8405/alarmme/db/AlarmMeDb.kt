@@ -4,7 +4,6 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import ca.poly.inf8405.alarmme.vo.CheckPoint
-import ca.poly.inf8405.alarmme.vo.Weather
 
 /**
  * This Room represent a database layer on top of SQLite Database
@@ -13,11 +12,9 @@ import ca.poly.inf8405.alarmme.vo.Weather
  */
 @Database(
   entities = [
-    CheckPoint::class,
-    Weather::class
-  ], version = 1, exportSchema = false)
+    CheckPoint::class
+  ], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AlarmMeDb: RoomDatabase() {
   abstract fun checkPointDao(): CheckPointDao
-  abstract fun weatherDao(): WeatherDao
 }

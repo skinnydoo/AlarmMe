@@ -1,6 +1,7 @@
 package ca.poly.inf8405.alarmme.di
 
-import ca.poly.inf8405.alarmme.ui.MapFragment
+import ca.poly.inf8405.alarmme.ui.homescreen.MapFragment
+import ca.poly.inf8405.alarmme.ui.homescreen.NewCheckPointDialogFragment
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 
@@ -8,4 +9,7 @@ import dagger.android.ContributesAndroidInjector
 abstract class FragmentBuildersModule {
  @ContributesAndroidInjector
  abstract fun contributeMapFragment(): MapFragment
+ 
+ @ContributesAndroidInjector
+ abstract fun contributeNewCheckPointDialogFragment(): NewCheckPointDialogFragment
 }

@@ -9,13 +9,16 @@ import ca.poly.inf8405.alarmme.di.qualifier.ApiKey
 import ca.poly.inf8405.alarmme.di.qualifier.ApplicationContext
 import ca.poly.inf8405.alarmme.di.qualifier.CacheDuration
 import ca.poly.inf8405.alarmme.utils.AlarmMeRequestInterceptor
+import ca.poly.inf8405.alarmme.utils.DateTimeConverter
 import ca.poly.inf8405.alarmme.utils.LiveDataCallAdapterFactory
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level
+import org.joda.time.DateTime
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -73,13 +76,20 @@ class ApiModule {
     
   @Singleton
   @Provides
-  fun provideRetrofit(httpClient: OkHttpClient): Retrofit =
-    Retrofit.Builder()
+  fun provideRetrofit(httpClient: OkHttpClient): Retrofit {
+    
+    val gson = GsonBuilder()
+      .registerTypeAdapter(DateTime::class.java, DateTimeConverter())
+      .setPrettyPrinting()
+      .create()
+    
+    return Retrofit.Builder()
       .baseUrl(BASE_URL)
       .client(httpClient)
-      .addConverterFactory(GsonConverterFactory.create())
+      .addConverterFactory(GsonConverterFactory.create(gson))
       .addCallAdapterFactory(LiveDataCallAdapterFactory())
       .build()
+  }
   
   @Singleton
   @Provides
@@ -87,7 +97,7 @@ class ApiModule {
     retrofit.create(WeatherService::class.java)
   
   companion object {
-    private const val BASE_URL = "api.openweathermap.org/data/2.5/"
+    private const val BASE_URL = "https://api.openweathermap.org/data/2.5/"
   }
   
 }

@@ -52,7 +52,6 @@
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
            android:columnCount="3"
-           android:useDefaultMargins="true"
            android:padding="@dimen/spacing_normal"
            app:layout_constraintStart_toStartOf="parent"
            app:layout_constraintEnd_toEndOf="parent"
@@ -68,6 +67,9 @@
                android:textColor="?attr/colorAccent"
                android:layout_row="0"
                android:layout_column="0"
+               android:gravity="center_horizontal|start"
+               android:layout_gravity="center_horizontal|start"
+               android:layout_marginEnd="@dimen/spacing_tiny"
                />
 
        <TextView
@@ -76,7 +78,7 @@
                android:layout_height="wrap_content"
                android:layout_row="0"
                android:layout_column="1"
-               android:layout_gravity="fill_horizontal"
+               android:layout_gravity="center_horizontal|start"
                android:layout_columnWeight="1"
                tools:text="45454545454545"
                />
@@ -85,10 +87,13 @@
                android:id="@+id/longitude_label"
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
+               android:layout_marginEnd="@dimen/spacing_tiny"
                android:text="@string/longitude"
                android:textColor="?attr/colorAccent"
                android:layout_row="1"
                android:layout_column="0"
+               android:layout_marginTop="@dimen/spacing_tiny"
+               android:layout_gravity="center_horizontal|start"
                />
 
        <TextView
@@ -98,19 +103,23 @@
                android:layout_row="1"
                android:layout_column="1"
                android:layout_columnSpan="2"
+               android:layout_marginTop="@dimen/spacing_tiny"
                android:layout_gravity="fill_horizontal"
                android:layout_columnWeight="1"
                tools:text="45454545454545"
                />
 
-       <!--<TextView
+       <TextView
                android:id="@+id/city_label"
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
+               android:layout_marginEnd="@dimen/spacing_tiny"
                android:text="@string/city"
                android:textColor="?attr/colorAccent"
+               android:layout_marginTop="@dimen/spacing_tiny"
                android:layout_row="2"
                android:layout_column="0"
+               android:layout_gravity="center_horizontal|start"
                />
 
        <TextView
@@ -121,30 +130,38 @@
                android:layout_column="1"
                android:layout_columnSpan="2"
                android:layout_gravity="fill_horizontal"
+               android:layout_marginTop="@dimen/spacing_tiny"
                android:layout_columnWeight="1"
                tools:text="Montreal"
-               />-->
+               />
 
        <TextView
                android:id="@+id/radius_label"
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
+               android:layout_marginEnd="@dimen/spacing_tiny"
                android:text="@string/radius"
                android:textColor="?attr/colorAccent"
                android:layout_row="3"
                android:layout_column="0"
+               android:layout_marginTop="@dimen/spacing_tiny"
+               android:layout_gravity="center|start"
                />
 
        <SeekBar
                android:id="@+id/radius_sb"
                android:layout_width="0dp"
-               android:layout_height="@dimen/seekbar_height"
+               android:layout_height="30dp"
                android:layout_marginEnd="@dimen/spacing_tiny"
-               android:max="560"
-               android:progress="60"
+               android:paddingStart="@dimen/spacing_small"
+               android:paddingEnd="@dimen/spacing_small"
+               style="@style/Widget.AppCompat.SeekBar.Discrete"
+               android:max="4"
+               android:progress="2"
                android:layout_row="3"
                android:layout_column="1"
                android:layout_gravity="fill_horizontal"
+               android:layout_marginTop="@dimen/spacing_tiny"
                android:layout_columnWeight="1"
                />
 
@@ -156,9 +173,11 @@
                android:textColor="?attr/colorAccent"
                android:layout_row="3"
                android:layout_column="2"
+               android:layout_marginTop="@dimen/spacing_tiny"
+               android:layout_gravity="center|start"
                />
 
-       <com.google.android.material.button.MaterialButton
+       <!--<com.google.android.material.button.MaterialButton
                android:id="@+id/cancel_button"
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
@@ -169,8 +188,7 @@
                android:backgroundTint="?attr/colorAccent"
                android:layout_row="4"
                android:layout_column="1"
-               android:layout_gravity="center_horizontal|end"
-               android:layout_columnWeight="1"
+               android:layout_gravity="end"
                android:layout_marginEnd="@dimen/spacing_normal"
                />
 
@@ -185,7 +203,8 @@
                android:backgroundTint="?attr/colorAccent"
                android:layout_row="4"
                android:layout_column="2"
-               />
+               android:layout_gravity="start|center"
+               />-->
    </GridLayout>
 
 </LinearLayout>

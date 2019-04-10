@@ -8,7 +8,7 @@
 
     <fragment
             android:id="@+id/map_dest"
-            android:name="ca.poly.inf8405.alarmme.ui.MapFragment"
+            android:name="ca.poly.inf8405.alarmme.ui.homescreen.MapFragment"
             android:label="@string/explore"
             tools:layout="@layout/fragment_map"
             />

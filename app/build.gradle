@@ -73,17 +73,17 @@ dependencies {
     testImplementation "androidx.arch.core:core-testing:${versions.lifecycle}"
 
     // Okhttp component
-    /*implementation "com.squareup.okhttp3:okhttp:${versions.okhttp}"*/
+    implementation "com.squareup.okhttp3:okhttp:${versions.okhttp}"
     implementation "com.squareup.okhttp3:logging-interceptor:${versions.okhttp}"
 
     // GSON component
     implementation "com.google.code.gson:gson:${versions.gson}"
 
     // Retrofit component
-    implementation("com.squareup.retrofit2:retrofit:${versions.retrofit}") /*{
+    implementation ("com.squareup.retrofit2:retrofit:${versions.retrofit}") {
         // exclude Retrofit’s OkHttp peer-dependency module and define our own module import
-        exclude module: 'okhttp'
-    }*/
+        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
+    }
     implementation "com.squareup.retrofit2:converter-gson:${versions.retrofit}"
 
     // Dagger components

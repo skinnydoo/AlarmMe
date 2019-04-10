@@ -1,7 +1,7 @@
 package ca.poly.inf8405.alarmme.api
 
 import androidx.lifecycle.LiveData
-import ca.poly.inf8405.alarmme.vo.Weather
+import ca.poly.inf8405.alarmme.vo.CheckPoint
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -27,7 +27,7 @@ interface WeatherService {
   fun getCurrentWeather(
     @Query("lat") latitude: Double,
     @Query("lon") longitude: Double
-  ): LiveData<ApiResponse<Weather>>
+  ): LiveData<ApiResponse<CheckPoint.Weather>>
   
   /**
    * Get the current weather by city name.
@@ -43,6 +43,6 @@ interface WeatherService {
   @GET(value = "weather")
   fun getCurrentWeather(
     @Query(value = "q") cityName: String
-  ): LiveData<ApiResponse<Weather>>
+  ): LiveData<ApiResponse<CheckPoint.Weather>>
   
 }

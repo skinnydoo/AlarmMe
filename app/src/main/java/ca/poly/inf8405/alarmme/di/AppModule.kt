@@ -5,7 +5,6 @@ import android.content.Context
 import androidx.room.Room
 import ca.poly.inf8405.alarmme.db.AlarmMeDb
 import ca.poly.inf8405.alarmme.db.CheckPointDao
-import ca.poly.inf8405.alarmme.db.WeatherDao
 import ca.poly.inf8405.alarmme.di.qualifier.ApplicationContext
 import dagger.Module
 import dagger.Provides
@@ -34,10 +33,6 @@ class AppModule {
   @Singleton
   @Provides
   fun provideCheckPointDao(db: AlarmMeDb): CheckPointDao = db.checkPointDao()
-  
-  @Singleton
-  @Provides
-  fun provideWeatherDao(db: AlarmMeDb): WeatherDao = db.weatherDao()
   
   
   companion object {

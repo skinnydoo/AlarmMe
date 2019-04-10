@@ -1,6 +1,9 @@
 package ca.poly.inf8405.alarmme.db
 
 import androidx.room.TypeConverter
+import ca.poly.inf8405.alarmme.vo.CheckPoint.Weather.WeatherDescription
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import org.joda.time.DateTime
 
 object Converters {
@@ -12,7 +15,7 @@ object Converters {
   @JvmStatic
   fun fromDateTime(dateTime: DateTime?): Long? = dateTime?.millis
   
- /* @TypeConverter
+  @TypeConverter
   @JvmStatic
   fun toList(json: String? ): List<WeatherDescription>? = json?.let {
     val type = object : TypeToken<List<WeatherDescription>>() {}.type
@@ -26,7 +29,7 @@ object Converters {
   
     val type = object : TypeToken<List<WeatherDescription>>() {}.type
     return Gson().toJson(list, type)
-  }*/
+  }
   
   
   // add more converters here...
