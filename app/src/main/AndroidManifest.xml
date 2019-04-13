@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
             android:name=".AlarmMeApp"
@@ -17,14 +18,28 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:ignore="GoogleAppIndexingWarning">
+        <receiver
+                android:name=".ui.homescreen.MapFragment$GeofenceBroadcastReceiver"
+                android:enabled="true"
+                android:exported="true">
+        </receiver>
+
         <service
-                android:name=".ui.service.FetchAddressIntentService"
+                android:name=".service.GeofenceTransitionsJobIntentService"
+                android:exported="true"
+                android:permission="android.permission.BIND_JOB_SERVICE">
+        </service>
+        <service
+                android:name=".service.FetchAddressIntentService"
                 android:exported="false">
         </service>
 
         <meta-data
                 android:name="com.google.android.geo.API_KEY"
                 android:value="@string/google_maps_api_key"/>
+        <meta-data
+                android:name="com.google.android.gms.version"
+                android:value="@integer/google_play_services_version"/>
 
         <activity
                 android:name=".ui.MainActivity"

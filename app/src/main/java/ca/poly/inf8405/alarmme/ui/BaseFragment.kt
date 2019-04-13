@@ -3,7 +3,6 @@ package ca.poly.inf8405.alarmme.ui
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
@@ -17,7 +16,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import ca.poly.inf8405.alarmme.BuildConfig
 import ca.poly.inf8405.alarmme.R
 import ca.poly.inf8405.alarmme.di.Injectable
@@ -28,11 +26,8 @@ import ca.poly.inf8405.alarmme.utils.extensions.snackBar
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.net.PlacesClient
-import com.google.android.libraries.places.internal.it
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.fragment_map.*
 import javax.inject.Inject
 
 abstract class BaseFragment: Fragment(), Injectable {
@@ -52,6 +47,12 @@ abstract class BaseFragment: Fragment(), Injectable {
   // Used to determine if the devices has optimal location settings
   @Inject
   lateinit var locationSettingsRequest: LocationSettingsRequest
+  
+  /**
+   * Provides access to the Geofencing API
+   */
+  @Inject
+  lateinit var geofencingClient: GeofencingClient
   
   // Provides access to the Places Api Client
   @Inject
@@ -98,22 +99,22 @@ abstract class BaseFragment: Fragment(), Injectable {
   /**
    * Return the current state of the permissions needed
    */
-  protected fun checkPermissions(): Boolean {
+  private fun checkPermissions(): Boolean {
     val permissionState =
-      ActivityCompat.checkSelfPermission(activity as Context, Manifest.permission.ACCESS_FINE_LOCATION)
+      ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
     return permissionState == PackageManager.PERMISSION_GRANTED
   }
   
-  protected fun requestPermissions() {
+  private fun requestPermissions() {
     LogWrapper.d("Requesting location permission from the user...")
     val shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(
-      activity as FragmentActivity, Manifest.permission.ACCESS_FINE_LOCATION)
+      requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
     
     // Provide an additional rationale to the user. This would happen if the user denied the
     // request previously, but didn't check the "Don't ask again" checkbox.
     if(shouldProvideRationale) {
       LogWrapper.d("Displaying permission rationale to provide additional context.")
-      rootView?.snackBar(R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE) {
+      rootView?.snackBar(R.string.error_permission_rationale, Snackbar.LENGTH_INDEFINITE) {
         action(android.R.string.ok) {
           // Request permission
           requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -159,7 +160,7 @@ abstract class BaseFragment: Fragment(), Injectable {
       else -> // Permission denied
         // Notify the user via a SnackBar that they have rejected a core permission for the
         // app, which makes the Activity useless.
-        rootView?.snackBar(R.string.permission_denied_explanation, Snackbar.LENGTH_INDEFINITE) {
+        rootView?.snackBar(R.string.error_permission_denied_explanation, Snackbar.LENGTH_INDEFINITE) {
           action(R.string.action_settings) {
             try {
               // Build intent that displays the App settings screen.
@@ -172,7 +173,7 @@ abstract class BaseFragment: Fragment(), Injectable {
             } catch (e: ActivityNotFoundException) {
               
               val alternateIntent =  Intent().apply {
-                action = android.provider.Settings.ACTION_SETTINGS
+                action = Settings.ACTION_SETTINGS
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
               }
               startActivity(alternateIntent)
@@ -218,8 +219,8 @@ abstract class BaseFragment: Fragment(), Injectable {
           }
           
           LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
-            LogWrapper.e(getString(R.string.location_settings_inadequate))
-            activity?.showToast(R.string.location_settings_inadequate, Toast.LENGTH_LONG)
+            LogWrapper.e(getString(R.string.error_location_settings_inadequate))
+            activity?.showToast(R.string.error_location_settings_inadequate, Toast.LENGTH_LONG)
             allowLocationUpdates = false
           }
         }

@@ -1,4 +1,4 @@
-package ca.poly.inf8405.alarmme.ui.service
+package ca.poly.inf8405.alarmme.service
 
 import android.app.IntentService
 import android.content.Context
@@ -35,7 +35,7 @@ class FetchAddressIntentService : IntentService("FetchAddressIntentService") {
         receiver = intent.getParcelableExtra(Constants.EXTRA_FETCH_ADDRESS_RECEIVER)
         handleActionFetchAddress(latLng, receiver)
       }
-       else -> LogWrapper.wtf(getString(R.string.no_receiver_received))
+       else -> LogWrapper.wtf(getString(R.string.error_no_receiver_received))
     }
   }
   
@@ -47,12 +47,12 @@ class FetchAddressIntentService : IntentService("FetchAddressIntentService") {
     var errorMessage = ""
   
     // Check if receiver was properly registered
-    receiver ?: return LogWrapper.d(getString(R.string.no_receiver_received))
+    receiver ?: return LogWrapper.e(getString(R.string.error_no_receiver_received))
     
     // Make sure that the latLng data was really sent over through an extra. If it wasn't,
     // send an error error message and return.
     latLng ?: return run {
-      errorMessage = getString(R.string.no_location_data_provided)
+      errorMessage = getString(R.string.error_no_location_data_provided)
       LogWrapper.d(errorMessage)
       deliverResultToReceiver(Constants.FAILURE_RESULT, errorMessage)
     }
@@ -69,11 +69,11 @@ class FetchAddressIntentService : IntentService("FetchAddressIntentService") {
       addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
     } catch (ex: IOException) {
       // Catch network or other IO problems
-      errorMessage = getString(R.string.service_not_available)
+      errorMessage = getString(R.string.error_service_not_available)
       LogWrapper.e(errorMessage, ex)
     } catch (ex: IllegalArgumentException) {
       // Catch invalid latitude or longitude values
-      errorMessage = getString(R.string.invalid_lat_long_used)
+      errorMessage = getString(R.string.error_invalid_lat_long_used)
       LogWrapper.e("$errorMessage. Latitude -> ${latLng.latitude}, " +
         "Longitude -> ${latLng.longitude}", ex)
     }
@@ -82,7 +82,7 @@ class FetchAddressIntentService : IntentService("FetchAddressIntentService") {
     when {
       addresses.isEmpty() -> {
         if (errorMessage.isEmpty()) {
-          errorMessage = getString(R.string.no_address_found)
+          errorMessage = getString(R.string.error_no_address_found)
           LogWrapper.e(errorMessage)
         }
         deliverResultToReceiver(Constants.FAILURE_RESULT, errorMessage)
@@ -119,10 +119,9 @@ class FetchAddressIntentService : IntentService("FetchAddressIntentService") {
   
   companion object {
     /**
-     * Starts this service to perform action Foo with the given parameters. If
+     * Starts this service to perform action FetchAddress with the given parameters. If
      * the service is already performing a task this action will be queued.
      *
-     * @see IntentService
      */
     @JvmStatic
     fun startActionFetchAddress(context: Context,
@@ -132,10 +131,10 @@ class FetchAddressIntentService : IntentService("FetchAddressIntentService") {
       val intent = Intent(context, FetchAddressIntentService::class.java).apply {
         action = Constants.ACTION_FETCH_ADDRESS
   
-        // Pass the result receiver as an extra to the service.
+        // Pass the location data as an extra to the service.
         putExtra(Constants.EXTRA_LOCATION_DATA, latLng)
   
-        // Pass the location data as an extra to the service.
+        // Pass the result receiver as an extra to the service.
         putExtra(Constants.EXTRA_FETCH_ADDRESS_RECEIVER, receiver)
       }
   

@@ -37,6 +37,10 @@ interface CheckPointDao: BaseDao<CheckPoint> {
   @Query("SELECT * FROM checkpoint_table WHERE latitude = :lat AND longitude = :lng")
   fun findCheckPointByLatLng(lat: Double, lng: Double) : LiveData<CheckPoint>
   
+  // Delete by name
+  @Query("DELETE FROM checkpoint_table WHERE name = :name")
+  fun deleteByName(name: String)
+  
   // Delete all Check points
   @Query(value = "DELETE FROM checkpoint_table")
   fun deleteAll()

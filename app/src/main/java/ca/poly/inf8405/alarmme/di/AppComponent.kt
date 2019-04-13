@@ -22,7 +22,8 @@ import javax.inject.Singleton
   AppModule::class, // Provide app context, persistence db, shared pref etc.
   ApiModule::class, // Provides Api key, retrofit, okhttp etc...
   LocationModule::class, // Provides FusedLocation Api, Location Settings API, etc
-  MainActivityModule::class // Provides our MainActivity
+  MainActivityModule::class, // Provides our MainActivity
+  ServiceBuilderModule::class // Provides our Services
 ])
 interface AppComponent {
   fun inject(alarmMeApp: AlarmMeApp)

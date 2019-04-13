@@ -24,7 +24,6 @@ data class CheckPoint(
   val longitude: Double,
   val radius: Int,
   val active: Boolean = false,
-  val reached: Boolean = false,
   val favorited: Boolean = false,
   @Embedded(prefix = "weather_")
   var weather: Weather? = null

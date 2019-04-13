@@ -1,26 +1,17 @@
 package ca.poly.inf8405.alarmme.ui
 
 import android.os.Bundle
-import android.view.View
 import android.view.WindowManager
-import android.widget.EditText
-import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import ca.poly.inf8405.alarmme.R
-import ca.poly.inf8405.alarmme.utils.LogWrapper
-import ca.poly.inf8405.alarmme.utils.extensions.placeSelected
-import ca.poly.inf8405.alarmme.utils.extensions.toPx
 import ca.poly.inf8405.alarmme.viewmodel.CheckPointViewModel
 import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.support.HasSupportFragmentInjector
-import kotlinx.android.synthetic.main.activity_main.*
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(),

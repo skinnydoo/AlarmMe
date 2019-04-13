@@ -10,10 +10,10 @@ import android.util.Log
 object LogWrapper {
 
     /*
-	 * debug variable enables/disables all log messages to logcat
+	 * DEBUG variable enables/disables all log messages to logcat
 	 * Useful to disable prior to app store submission
 	 */
-    var debug = false
+    var DEBUG = false
     private const val stackTraceLevelsUp = 3
 
     /*
@@ -53,7 +53,7 @@ object LogWrapper {
 	 */
     fun e(msg: String, thr: Throwable) {
 
-        if (!debug) return
+        if (!DEBUG) return
 
         val t = trace(Thread.currentThread().stackTrace, stackTraceLevelsUp)
         Log.e(t!![0], t[1] + msg, thr)
@@ -66,20 +66,20 @@ object LogWrapper {
 	 */
     fun e(msg: String) {
 
-        if (!debug) return
+        if (!DEBUG) return
 
         val t = trace(Thread.currentThread().stackTrace, stackTraceLevelsUp)
         Log.e(t!![0], t[1] + msg)
     }
 
     /*
-	 * d method used to log passed debug string and returns the
+	 * d method used to log passed DEBUG string and returns the
 	 * calling file as the tag, method and line number prior
 	 * to the string's message
 	 */
     fun d(msg: String) {
 
-        if (!debug) return
+        if (!DEBUG) return
 
         val t = trace(Thread.currentThread().stackTrace, stackTraceLevelsUp)
         Log.d(t!![0], t[1] + msg)
@@ -89,18 +89,18 @@ object LogWrapper {
     /*
 	 * d (tag, string)
 	 * used to pass logging messages as normal but can be disabled
-	 * when debug == false
+	 * when DEBUG == false
 	 */
     fun d(TAG: String, msg: String) {
 
-        if (!debug) return
+        if (!DEBUG) return
 
         Log.d(TAG, msg)
     }
 
 
     fun w(msg: String) {
-        if (!debug) return
+        if (!DEBUG) return
 
         val t = trace(Thread.currentThread().stackTrace, stackTraceLevelsUp)
         Log.w(t!![0], t[1] + msg)
@@ -114,7 +114,7 @@ object LogWrapper {
 	 */
     fun wtf(msg: String, thr: Throwable) {
 
-        if (!debug) return
+        if (!DEBUG) return
 
         val t = trace(Thread.currentThread().stackTrace, stackTraceLevelsUp)
         Log.wtf(t!![0], t[1] + msg, thr)
@@ -127,7 +127,7 @@ object LogWrapper {
 	 */
     fun wtf(msg: String) {
 
-        if (!debug) return
+        if (!DEBUG) return
 
         val t = trace(Thread.currentThread().stackTrace, stackTraceLevelsUp)
         Log.wtf(t!![0], t[1] + msg)

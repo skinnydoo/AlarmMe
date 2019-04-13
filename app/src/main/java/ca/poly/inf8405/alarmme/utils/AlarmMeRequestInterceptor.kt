@@ -1,11 +1,17 @@
 package ca.poly.inf8405.alarmme.utils
 
+import ca.poly.inf8405.alarmme.di.WEATHER_KEY
+import ca.poly.inf8405.alarmme.di.qualifier.ApiKey
+import ca.poly.inf8405.alarmme.di.qualifier.CacheDuration
 import okhttp3.Interceptor
 import okhttp3.Response
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AlarmMeRequestInterceptor(
-  private val apiKey: String,
-  private val cacheDuration: Int
+@Singleton
+class AlarmMeRequestInterceptor @Inject constructor (
+  @ApiKey(WEATHER_KEY) private val apiKey: String,
+  @CacheDuration private val cacheDuration: Int
 ) : Interceptor {
   
   override fun intercept(chain: Interceptor.Chain): Response {

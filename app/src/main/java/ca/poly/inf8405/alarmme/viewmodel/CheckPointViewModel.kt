@@ -14,9 +14,24 @@ class CheckPointViewModel @Inject constructor(
   private val checkPointRepository: CheckPointRepository
 ) : ViewModel() {
   
-  val allCheckPoints: LiveData<List<CheckPoint>> = checkPointRepository.allCheckPoints
+  val activeCheckPoints: LiveData<List<CheckPoint>>
+    get() = checkPointRepository.allActiveCheckPoints
   
-  val activeCheckPoints: LiveData<List<CheckPoint>> = checkPointRepository.allActiveCheckPoints
+  private val _checkPoint = MutableLiveData<CheckPoint>()
+  val checkPoint: LiveData<Resource<CheckPoint>> =
+    Transformations.switchMap(_checkPoint) { checkPoint ->
+      if (checkPoint == null){
+        AbsentLiveData.create()
+      } else {
+        checkPointRepository.loadCurrentWeather(checkPoint)
+      }
+    }
+  
+  fun setCheckPoint(checkPoint: CheckPoint) {
+    if (_checkPoint.value != checkPoint) {
+      _checkPoint.value = checkPoint
+    }
+  }
   
   private val _checkPointCity = MutableLiveData<String>()
   val checkPointCity : LiveData<String>
@@ -28,27 +43,11 @@ class CheckPointViewModel @Inject constructor(
     }
   }
   
-  // region Current weather LiveData by geographic coordinates
-  private val _checkPoint = MutableLiveData<CheckPoint>()
-  val checkPoint: LiveData<Resource<CheckPoint>> =
-    Transformations.switchMap(_checkPoint) { checkPoint ->
-      if (checkPoint == null){
-        AbsentLiveData.create()
-      } else {
-        checkPointRepository.loadCurrentWeather(checkPoint)
-      }
-    }
-  
-  fun addCheckPoint(checkPoint: CheckPoint) {
-    if (_checkPoint.value != checkPoint) {
-      _checkPoint.value = checkPoint
-    }
-  }
-  
-  // endregion
   
   /**
    * Delete one checkpoint from the database
    */
   fun delete(checkPoint: CheckPoint): Unit = checkPointRepository.delete(checkPoint)
+  
+  fun delete(name: String): Unit = checkPointRepository.delete(name)
 }

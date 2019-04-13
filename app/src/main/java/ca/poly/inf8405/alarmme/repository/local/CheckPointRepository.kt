@@ -79,5 +79,9 @@ class CheckPointRepository @Inject constructor(
   fun delete(checkPoint: CheckPoint) = diskIOThread {
     checkPointDao.delete(checkPoint)
   }
+  
+  fun delete(name: String) = diskIOThread {
+    checkPointDao.deleteByName(name)
+  }
   // endregion
 }

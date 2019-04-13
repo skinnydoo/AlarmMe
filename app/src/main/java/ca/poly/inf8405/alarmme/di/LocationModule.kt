@@ -29,6 +29,11 @@ class LocationModule {
     @ApplicationContext context: Context
   ) : PlacesClient = Places.createClient(context)
   
+  @Singleton
+  @Provides
+  fun provideGeofencingClient(@ApplicationContext context: Context) : GeofencingClient =
+    LocationServices.getGeofencingClient(context)
+  
   
   /**
    * Sets up the location request. This app uses ACCESS_FINE_LOCATION, as defined in
