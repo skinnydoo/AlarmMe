@@ -2,6 +2,8 @@ package ca.poly.inf8405.alarmme.ui.homescreen
 
 import android.app.Dialog
 import android.os.Bundle
+import android.view.View
+import android.widget.EditText
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -14,9 +16,9 @@ import ca.poly.inf8405.alarmme.service.Constants.RADIUS_MIN
 import ca.poly.inf8405.alarmme.service.Constants.RADIUS_STEP
 import ca.poly.inf8405.alarmme.ui.MainActivity
 import ca.poly.inf8405.alarmme.utils.LogWrapper
+import ca.poly.inf8405.alarmme.utils.Validator
 import ca.poly.inf8405.alarmme.viewmodel.CheckPointViewModel
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.material.textfield.TextInputLayout
 
 private const val LAT_LNG = "lat_lng"
 
@@ -24,18 +26,20 @@ class NewCheckPointDialogFragment: DialogFragment(), Injectable, SeekBar.OnSeekB
   
   private val checkPointViewModel: CheckPointViewModel by lazy { (activity as MainActivity).obtainCheckPointViewModel() }
   
-  private var listener: OnNewCheckPointDialogListener? = null
-  private var cityName: String? = null
-  private var latLng: LatLng? = null
-  
-  private var radiusTextView: TextView? = null
-  private var cityNameTextView: TextView? = null
   private var radius = DEFAULT_RADIUS
+  private var listener: OnNewCheckPointDialogListener? = null
+  
+  private lateinit var latLng: LatLng
+  
+  private lateinit var radiusTextView: TextView
+  private lateinit var cityNameTextView: TextView
+  private lateinit var locationNameEditText: EditText
+  private lateinit var messageEditText: EditText
   
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     arguments?.let {
-      latLng = it.getParcelable(LAT_LNG)
+      latLng = it.getParcelable(LAT_LNG) as LatLng
     }
   }
   
@@ -44,23 +48,15 @@ class NewCheckPointDialogFragment: DialogFragment(), Injectable, SeekBar.OnSeekB
       
       val dialogView = activity.layoutInflater.inflate(R.layout.dialog_add_checkpoint, null)
   
-      val nameTextInputLayout = dialogView.findViewById(R.id.name_til) as TextInputLayout
-      val nameEditText = nameTextInputLayout.editText
-      
-      val latitudeTextView = dialogView.findViewById(R.id.latitude_tv) as TextView
-      val longitudeTextView = dialogView.findViewById(R.id.longitude_tv) as TextView
-      latLng?.let {
-        latitudeTextView.text = it.latitude.toString()
-        longitudeTextView.text = it.longitude.toString()
-      }
+      locationNameEditText = dialogView.findViewById(R.id.location_edit_text) as EditText
+      messageEditText = dialogView.findViewById(R.id.message_edit_text) as EditText
   
       cityNameTextView = dialogView.findViewById(R.id.city_tv) as TextView
-      //cityName?.let { cityNameTextView.text = it }
-      
+  
+      radiusTextView = dialogView.findViewById(R.id.radius_tv) as TextView
       val radiusSeekBar = dialogView.findViewById(R.id.radius_sb) as SeekBar
       radiusSeekBar.setOnSeekBarChangeListener(this)
   
-      radiusTextView = dialogView.findViewById(R.id.radius_tv) as TextView
       subscribeToModel()
       
       val dialog = AlertDialog.Builder(activity)
@@ -71,17 +67,7 @@ class NewCheckPointDialogFragment: DialogFragment(), Injectable, SeekBar.OnSeekB
       
       dialog.setOnShowListener {
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-  
-          // TODO sanity check on the latlng..shake animation when null with explanation to user
-          latLng?.let {
-            val enteredName = nameEditText?.text.toString()
-            if (enteredName.length >= 4){
-              listener?.onAddCheckPoint(enteredName, it, radius)
-              dialog.dismiss()
-            } else {
-              nameEditText?.error = getString(R.string.error_name_length)
-            }
-          }
+          attemptAddCheckPoint(dialog, latLng)
         }
       }
       
@@ -89,16 +75,51 @@ class NewCheckPointDialogFragment: DialogFragment(), Injectable, SeekBar.OnSeekB
     } ?: throw IllegalStateException("Activity cannot be null")
   }
   
-  
   override fun onDetach() {
     super.onDetach()
     listener = null
   }
   
+  private fun attemptAddCheckPoint(dialog: AlertDialog, latLng: LatLng ) {
+    // Reset errors
+    locationNameEditText.error = null
+    messageEditText.error = null
+  
+    val locationName = locationNameEditText.text.toString()
+    val message = messageEditText.text.toString()
+    
+    var cancel = false
+    var focusView: View? = null
+    
+    // Check for valid location name
+    if (Validator.isFieldEmpty(locationNameEditText, getString(R.string.error_field_required)) &&
+      !Validator.isNameValid(locationNameEditText, getString(R.string.error_location_name_validation_msg))) {
+      
+      cancel = true
+      focusView = locationNameEditText
+    }
+    
+    // Check for valid alarm message
+    if (Validator.isFieldEmpty(messageEditText, getString(R.string.error_field_required)) &&
+      !Validator.isNameValid(messageEditText, getString(R.string.error_message_validation_msg))) {
+      cancel = true
+      focusView = messageEditText
+    }
+    
+    if (cancel) {
+      // There was an error; don't attempt add checkpoint and focus the first
+      // form field with an error.
+      focusView?.requestFocus()
+    } else {
+      listener?.onAddCheckPoint(locationName, message, latLng)
+      dialog.dismiss()
+    }
+  }
+  
   override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
     val correctedProgress = RADIUS_MIN + (progress * RADIUS_STEP)
   
-    radiusTextView?.text = when {
+    radiusTextView.text = when {
       correctedProgress >= 1000 -> String.format("%.1fkm", correctedProgress * 0.001)
       else -> String.format("%sm", correctedProgress)
     }
@@ -114,7 +135,7 @@ class NewCheckPointDialogFragment: DialogFragment(), Injectable, SeekBar.OnSeekB
   private fun subscribeToModel() {
     checkPointViewModel.checkPointCity.observe(this, Observer {
       LogWrapper.d("City -> $it")
-      cityNameTextView?.text = it
+      cityNameTextView.text = it
     })
   }
   
@@ -123,7 +144,8 @@ class NewCheckPointDialogFragment: DialogFragment(), Injectable, SeekBar.OnSeekB
   }
   
   interface OnNewCheckPointDialogListener {
-    fun onAddCheckPoint(checkPointName: String, latLng: LatLng, radius: Int = DEFAULT_RADIUS)
+    fun onAddCheckPoint(checkPointName: String, alarmMessage: String,
+                        latLng: LatLng, radius: Int = DEFAULT_RADIUS)
   }
   
   companion object {

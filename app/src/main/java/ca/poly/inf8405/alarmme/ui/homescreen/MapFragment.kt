@@ -1,5 +1,7 @@
 package ca.poly.inf8405.alarmme.ui.homescreen
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -33,7 +35,6 @@ import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
@@ -48,7 +49,7 @@ private data class MarkerPair(val marker: Marker, val circle: Circle)
 class MapFragment : BaseFragment(), Injectable,
   NewCheckPointDialogFragment.OnNewCheckPointDialogListener,
   RemoveCheckPointDialogFragment.OnRemoveCheckPointDialogListener,
-  OnMapReadyCallback {
+  OnMapAndViewReadyListener.OnGlobalLayoutAndMapReadyListener {
   
   private val checkPointViewModel: CheckPointViewModel by lazy { (activity as MainActivity).obtainCheckPointViewModel() }
   
@@ -86,7 +87,6 @@ class MapFragment : BaseFragment(), Injectable,
   }
   
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    allowLocationUpdates = true
     allowCameraUpdates = true
     addressResultReceiver = AddressResultReceiver(Handler())
     
@@ -107,8 +107,9 @@ class MapFragment : BaseFragment(), Injectable,
     mapView?.run {
       isHapticFeedbackEnabled = true
       onCreate(savedInstanceState)
-      getMapAsync(this@MapFragment) // get notified when the map is ready to use
+      OnMapAndViewReadyListener(this, this@MapFragment) // get notified when the map is ready to use
     }
+    showProgress(true)
     
     activity?.currentLocationFab?.hide()
     
@@ -167,9 +168,6 @@ class MapFragment : BaseFragment(), Injectable,
   override fun onPause() {
     super.onPause()
     mapView?.onPause()
-    
-    // Remove location updates to save battery
-    stopLocationUpdates()
   }
   
   override fun onStop() {
@@ -207,6 +205,7 @@ class MapFragment : BaseFragment(), Injectable,
     // return early if the map was not initialised properly
     map = googleMap ?: return
     LogWrapper.d("Map is ready...making initial setup")
+    showProgress(false)
     map?.apply {
       mapType = GoogleMap.MAP_TYPE_NORMAL
       uiSettings.isMyLocationButtonEnabled = false
@@ -264,7 +263,7 @@ class MapFragment : BaseFragment(), Injectable,
       RemoveCheckPointDialogFragment.newInstance(
         title = getString(R.string.remove_check_point),
         message = getString(R.string.confirm_remove_checkpoint),
-        checkPointName = it.title
+        checkPoint = marker.tag as CheckPoint
       ).also { dialog ->
         dialog.setRemoveCheckPointListener(this)
       }.show(fragmentManager, null)
@@ -275,7 +274,7 @@ class MapFragment : BaseFragment(), Injectable,
   private fun buildGeofence(checkPoint: CheckPoint): Geofence = Geofence.Builder().apply {
     // Set a request ID of the geofence. This is a string to identify this
     // geofence.
-    setRequestId(checkPoint.name)
+    setRequestId(checkPoint.id)
     
     // Set the circular region of this geofence.
     setCircularRegion(
@@ -301,7 +300,7 @@ class MapFragment : BaseFragment(), Injectable,
       setInitialTrigger(Geofence.GEOFENCE_TRANSITION_ENTER)
       
       // Add the geofence to be monitored by geofencing service.
-      addGeofences(arrayListOf(geofence))
+     addGeofence(geofence)
       
     }.build() // Create the request
   
@@ -325,11 +324,52 @@ class MapFragment : BaseFragment(), Injectable,
           LogWrapper.e(errorMessage)
         }
       }
-    
   }
   
-  private fun removeGeofences(checkPointName: String) {
-    geofencingClient.removeGeofences(arrayListOf(checkPointName)).run {
+  private fun showAddCheckPointDialog(latLng: LatLng) {
+    NewCheckPointDialogFragment
+      .newInstance(latLng)
+      .also { it.setOnNewCheckPointListener(this) }
+      .show(fragmentManager, null)
+  }
+  
+  override fun onAddCheckPoint(checkPointName: String, alarmMessage: String, latLng: LatLng, radius: Int) {
+    currentLocation?.let {
+      val results = FloatArray(3)
+      Location.distanceBetween(
+        it.latitude,
+        it.longitude,
+        latLng.latitude,
+        latLng.longitude,
+        results
+      )
+      
+      if (results[0] < Constants.RADIUS_MIN) {
+        requireContext().showToast(R.string.msg_already_near_location, Toast.LENGTH_LONG)
+      } else {
+        
+        val checkPoint = CheckPoint(
+          name = checkPointName,
+          message = alarmMessage,
+          latitude = latLng.latitude,
+          longitude = latLng.longitude,
+          radius = radius,
+          active = true
+        )
+        checkPointViewModel.setCheckPoint(checkPoint)
+      }
+    }
+  }
+  
+  override fun onRemoveCheckPoint(checkPoint: CheckPoint) {
+    LogWrapper.d("Removing checkpoint ->$checkPoint")
+    removeGeofences(checkPoint)
+    checkPointViewModel.delete(checkPoint)
+    removeMarkerOnMap(checkPoint)
+  }
+  
+  private fun removeGeofences(checkPoint: CheckPoint) {
+    geofencingClient.removeGeofences(arrayListOf(checkPoint.id)).run {
       addOnSuccessListener {
         LogWrapper.d(getString(R.string.geofences_removed))
       }
@@ -341,46 +381,8 @@ class MapFragment : BaseFragment(), Injectable,
     }
   }
   
-  private fun showAddCheckPointDialog(latLng: LatLng) {
-    NewCheckPointDialogFragment
-      .newInstance(latLng)
-      .also { it.setOnNewCheckPointListener(this) }
-      .show(fragmentManager, null)
-  }
-  
-  override fun onAddCheckPoint(checkPointName: String, latLng: LatLng, radius: Int) {
-    currentLocation?.let {
-      val results = FloatArray(3)
-      Location.distanceBetween(
-        it.latitude,
-        it.longitude,
-        latLng.latitude,
-        latLng.longitude,
-        results
-      )
-      if (results[0] < Constants.RADIUS_MIN) {
-        requireContext().showToast(R.string.msg_already_near_location, Toast.LENGTH_LONG)
-      } else {
-        val checkPoint = CheckPoint(
-          checkPointName, latLng.latitude, latLng.longitude, radius, active = true
-        )
-        checkPointViewModel.setCheckPoint(checkPoint)
-      }
-      
-    }
-    
-  }
-  
-  override fun onRemoveCheckPoint(checkPointName: String) {
-    LogWrapper.d("Removing checkpoint ->$checkPointName")
-    removeGeofences(checkPointName)
-    checkPointViewModel.delete(checkPointName)
-    removeMarkerOnMap(checkPointName)
-  }
-  
   
   private fun subscribeToModel() {
-    
     checkPointViewModel.activeCheckPoints.observeOnce(viewLifecycleOwner, Observer {
       LogWrapper.d("Loading all CheckPoint...")
       it.forEach { checkPoint -> addMarkerOnMap(checkPoint) }
@@ -417,15 +419,44 @@ class MapFragment : BaseFragment(), Injectable,
           .strokeColor(ContextCompat.getColor(requireContext(), R.color.colorAccent))
           .fillColor(ContextCompat.getColor(requireContext(), R.color.light_orange))
       )
+      marker.tag = checkPoint
+      circle.tag = checkPoint
       markers[checkPoint.name] = MarkerPair(marker, circle)
     }
   }
   
-  private fun removeMarkerOnMap(checkpointName: String) {
-    markers[checkpointName]?.let {
+  private fun removeMarkerOnMap(checkPoint: CheckPoint) {
+    markers[checkPoint.name]?.let {
       it.marker.remove()
       it.circle.remove()
     }
+  }
+  
+  /**
+   * Shows the progress UI and hides the map.
+   */
+  private fun showProgress(show: Boolean) {
+    val shortAnimTime = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+    
+    mapView.visibility = if (show) View.GONE else View.VISIBLE
+    mapView.animate()
+      .setDuration(shortAnimTime)
+      .alpha((if (show) 0 else 1).toFloat())
+      .setListener(object : AnimatorListenerAdapter() {
+        override fun onAnimationEnd(animation: Animator) {
+          mapView.visibility = if (show) View.GONE else View.VISIBLE
+        }
+      })
+    
+    map_progress.visibility = if (show) View.VISIBLE else View.GONE
+    map_progress.animate()
+      .setDuration(shortAnimTime)
+      .alpha((if (show) 1 else 0).toFloat())
+      .setListener(object : AnimatorListenerAdapter() {
+        override fun onAnimationEnd(animation: Animator) {
+          map_progress.visibility = if (show) View.VISIBLE else View.GONE
+        }
+      })
   }
   
   /**

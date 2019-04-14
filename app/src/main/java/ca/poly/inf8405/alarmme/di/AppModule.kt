@@ -34,7 +34,6 @@ class AppModule {
   @Provides
   fun provideCheckPointDao(db: AlarmMeDb): CheckPointDao = db.checkPointDao()
   
-  
   companion object {
     private const val DATABASE_NAME = "alarm-me.db"
   }

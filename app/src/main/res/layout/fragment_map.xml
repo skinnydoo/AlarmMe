@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.gms.maps.MapView
+<androidx.coordinatorlayout.widget.CoordinatorLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".ui.homescreen.MapFragment"
-        />
+        tools:context=".ui.homescreen.MapFragment">
+
+    <ProgressBar
+            android:id="@+id/map_progress"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            />
+
+    <com.google.android.gms.maps.MapView
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".ui.homescreen.MapFragment"
+            />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

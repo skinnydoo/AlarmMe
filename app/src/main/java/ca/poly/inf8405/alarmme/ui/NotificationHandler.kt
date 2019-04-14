@@ -18,11 +18,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val CHANNEL_ID = "${BuildConfig.APPLICATION_ID}.channel"
-private const val CHANNEL_MESSAGE = "Remind me there"
 private const val NOTIFICATION_ID = 0x1
 
 @Singleton
-class NotificationHandler @Inject constructor(@ApplicationContext private val context: Context) {
+class NotificationHandler @Inject constructor(
+  @ApplicationContext private val context: Context
+) {
   
   fun sendNotification(locationName: String, message: String) {
     createNotificationChannel()
@@ -47,7 +48,7 @@ class NotificationHandler @Inject constructor(@ApplicationContext private val co
     val notification = NotificationCompat.Builder(context, CHANNEL_ID).apply {
       // Define the notification settings
       setSmallIcon(R.drawable.ic_notification_white)
-      setContentTitle(context.getString(R.string.app_name)) // TODO use the location name
+      setContentTitle(locationName)
       setContentText(message)
       setContentIntent(notificationPendingIntent)
       setShowWhen(true)

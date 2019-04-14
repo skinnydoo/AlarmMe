@@ -25,6 +25,10 @@ interface CheckPointDao: BaseDao<CheckPoint> {
   @Query(value = "SELECT COUNT(*) FROM checkpoint_table")
   fun getCheckPointCount(): LiveData<Int>
   
+  // Query Checkpoint by id sync
+  @Query("SELECT * FROM checkpoint_table WHERE checkpoint_id = :id")
+  fun findCheckPointByIdSync(id: String) : CheckPoint
+  
   // Find checkpoint current weather city id
   @Query("SELECT * FROM checkpoint_table WHERE weather_id = :cityId")
   fun findCheckPointByWeatherId(cityId: Long): LiveData<CheckPoint>

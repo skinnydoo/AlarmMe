@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.JobIntentService
 import ca.poly.inf8405.alarmme.R
+import ca.poly.inf8405.alarmme.db.AlarmMeDb
 import ca.poly.inf8405.alarmme.ui.NotificationHandler
 import ca.poly.inf8405.alarmme.utils.GeofenceErrorMessages
 import ca.poly.inf8405.alarmme.utils.LogWrapper
@@ -16,6 +17,9 @@ class GeofenceTransitionsJobIntentService : JobIntentService() {
   
   @Inject
   lateinit var notificationHandler: NotificationHandler
+  
+  @Inject
+  lateinit var db: AlarmMeDb
   
   override fun onCreate() {
     AndroidInjection.inject(this)
@@ -50,8 +54,10 @@ class GeofenceTransitionsJobIntentService : JobIntentService() {
           
           // Get the first geofence id
           val geofenceId = triggeringGeofences[0].requestId
-          LogWrapper.d("Entered Geofence -> id = $geofenceId")
-          notificationHandler.sendNotification("", geofenceId)
+          val checkPoint = db.checkPointDao().findCheckPointByIdSync(geofenceId)
+  
+          LogWrapper.d("Entered Geofence -> $checkPoint")
+          notificationHandler.sendNotification(checkPoint.name, checkPoint.message)
         }
         
         else -> LogWrapper.d(

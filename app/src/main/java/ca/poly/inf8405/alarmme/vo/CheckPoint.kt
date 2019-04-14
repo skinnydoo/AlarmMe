@@ -1,10 +1,13 @@
 package ca.poly.inf8405.alarmme.vo
 
+import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import com.google.gson.annotations.SerializedName
+import kotlinx.android.parcel.Parcelize
 import org.joda.time.DateTime
+import java.util.*
 
 /**
  * A basic class representing an entity that is a row in a column database table.
@@ -16,10 +19,14 @@ import org.joda.time.DateTime
  */
 @Entity(
   tableName = "checkpoint_table",
-  primaryKeys = ["name"]
+  primaryKeys = ["checkpoint_id"]
 )
+@Parcelize
 data class CheckPoint(
+  @ColumnInfo(name = "checkpoint_id")
+  val id: String = UUID.randomUUID().toString(),
   val name: String,
+  val message: String,
   val latitude: Double,
   val longitude: Double,
   val radius: Int,
@@ -27,8 +34,9 @@ data class CheckPoint(
   val favorited: Boolean = false,
   @Embedded(prefix = "weather_")
   var weather: Weather? = null
-) {
+) : Parcelable {
   
+  @Parcelize
   data class Weather (
     @SerializedName(value ="id")
     val id: Long,
@@ -56,22 +64,25 @@ data class CheckPoint(
     @SerializedName(value = "dt")
     @ColumnInfo(name = "created_at")
     val dateTime: DateTime
-  ) {
+  ): Parcelable {
     
+    @Parcelize
     data class Coordinates(
       @SerializedName(value = "lat")
       val latitude: Double,
       @SerializedName(value = "lon")
       val longitude: Double
-    )
+    ): Parcelable
     
+    @Parcelize
     data class WeatherDescription(
       @SerializedName(value = "description")
       val description: String,
       @SerializedName(value = "icon")
       val iconUrl: String
-    )
+    ): Parcelable
     
+    @Parcelize
     data class WeatherInfo(
       @SerializedName(value = "temp")
       val temperature: Double,
@@ -83,13 +94,14 @@ data class CheckPoint(
       val minTemp: Double,
       @SerializedName(value = "temp_max")
       val maxTemp: Double
-    )
+    ): Parcelable
     
+    @Parcelize
     data class City(
       @SerializedName(value = "sunrise")
       val sunrise: DateTime,
       @SerializedName(value = "sunset")
       val sunset: DateTime
-    )
+    ): Parcelable
   }
 }

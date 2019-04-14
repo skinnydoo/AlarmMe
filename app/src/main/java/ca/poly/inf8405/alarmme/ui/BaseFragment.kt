@@ -36,7 +36,7 @@ abstract class BaseFragment: Fragment(), Injectable {
   @Inject
   lateinit var fusedLocationClient: FusedLocationProviderClient
   
-  // Provides access tot eh Location Settings API
+  // Provides access tot the Location Settings API
   @Inject
   lateinit var settingsClient: SettingsClient
   
@@ -58,8 +58,6 @@ abstract class BaseFragment: Fragment(), Injectable {
   @Inject
   lateinit var placesClient: PlacesClient
   
-  protected var allowLocationUpdates = true
-  
   // Callback for location events
   private lateinit var locationCallback: LocationCallback
   
@@ -77,10 +75,16 @@ abstract class BaseFragment: Fragment(), Injectable {
     
     if (!checkPermissions()) {
       requestPermissions()
-    } else if (allowLocationUpdates) {
+    } else {
       startLocationUpdates()
       onPermissionGranted()
     }
+  }
+  
+  override fun onPause() {
+    super.onPause()
+    // Remove location updates to save battery
+    stopLocationUpdates()
   }
   
   /**
@@ -181,9 +185,7 @@ abstract class BaseFragment: Fragment(), Injectable {
           }
         }
     }
-    
   }
-  
   
   /**
    * Request location updates from the FusedLocationApi.
@@ -191,9 +193,11 @@ abstract class BaseFragment: Fragment(), Injectable {
    */
   @SuppressLint("MissingPermission")
   protected fun startLocationUpdates() {
+    LogWrapper.d("Starting location updates...")
     LogWrapper.d("Checking if the device has the necessary location settings...")
     settingsClient.checkLocationSettings(locationSettingsRequest)
       .addOnSuccessListener {
+        
         LogWrapper.d("Settings OK. Requesting location update...")
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
         LogWrapper.d("Location update requested.")
@@ -221,7 +225,6 @@ abstract class BaseFragment: Fragment(), Injectable {
           LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
             LogWrapper.e(getString(R.string.error_location_settings_inadequate))
             activity?.showToast(R.string.error_location_settings_inadequate, Toast.LENGTH_LONG)
-            allowLocationUpdates = false
           }
         }
       }
@@ -232,16 +235,10 @@ abstract class BaseFragment: Fragment(), Injectable {
    * It is good practice to remove location request when the activity is in a paused or stopped
    * state. Doing so helps battery performance.
    */
-  protected fun stopLocationUpdates() {
+  private fun stopLocationUpdates() {
     LogWrapper.d("Stopping location updates...")
-    if (!allowLocationUpdates) {
-      LogWrapper.d("No-op. Updates never requested")
-      return
-    }
-    
     fusedLocationClient.removeLocationUpdates(locationCallback)
       .addOnCompleteListener {
-        allowLocationUpdates = false
         LogWrapper.d("Location updates stopped")
       }
     
@@ -261,7 +258,6 @@ abstract class BaseFragment: Fragment(), Injectable {
       AppCompatActivity.RESULT_CANCELED -> {
         // User chose not to make the required location settings changes
         LogWrapper.d("User chose not to make required location settings changes")
-        allowLocationUpdates = false
       }
       
     }
@@ -279,6 +275,5 @@ abstract class BaseFragment: Fragment(), Injectable {
     private const val REQUEST_CHECK_SETTINGS = 101
     
     //endregion
-    
   }
 }
