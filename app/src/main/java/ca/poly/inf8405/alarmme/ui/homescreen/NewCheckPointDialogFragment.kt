@@ -111,7 +111,7 @@ class NewCheckPointDialogFragment: DialogFragment(), Injectable, SeekBar.OnSeekB
       // form field with an error.
       focusView?.requestFocus()
     } else {
-      listener?.onAddCheckPoint(locationName, message, latLng)
+      listener?.onAddCheckPoint(locationName, message, latLng, radius)
       dialog.dismiss()
     }
   }

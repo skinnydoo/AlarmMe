@@ -2,9 +2,8 @@ package ca.poly.inf8405.alarmme.ui
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.content.IntentSender
+import android.app.PendingIntent
+import android.content.*
 import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
@@ -19,18 +18,24 @@ import androidx.fragment.app.Fragment
 import ca.poly.inf8405.alarmme.BuildConfig
 import ca.poly.inf8405.alarmme.R
 import ca.poly.inf8405.alarmme.di.Injectable
+import ca.poly.inf8405.alarmme.service.Constants
+import ca.poly.inf8405.alarmme.service.GeofenceTransitionsJobIntentService
+import ca.poly.inf8405.alarmme.utils.GeofenceErrorMessages
 import ca.poly.inf8405.alarmme.utils.LogWrapper
 import ca.poly.inf8405.alarmme.utils.extensions.action
+import ca.poly.inf8405.alarmme.utils.extensions.newIntent
 import ca.poly.inf8405.alarmme.utils.extensions.showToast
 import ca.poly.inf8405.alarmme.utils.extensions.snackBar
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
-import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.snackbar.Snackbar
 import javax.inject.Inject
 
 abstract class BaseFragment: Fragment(), Injectable {
+  
+  protected var listener: OnFragmentEventListener? = null
   
   // Provides access to the Fused Location Provider API
   @Inject
@@ -55,14 +60,39 @@ abstract class BaseFragment: Fragment(), Injectable {
   lateinit var geofencingClient: GeofencingClient
   
   // Provides access to the Places Api Client
-  @Inject
-  lateinit var placesClient: PlacesClient
+  /*@Inject
+  lateinit var placesClient: PlacesClient*/
   
   // Callback for location events
   private lateinit var locationCallback: LocationCallback
   
   // To display snackBars
   private var rootView: View? = null
+  
+  private val geofencePendingIntent: PendingIntent by lazy {
+    val intent = newIntent<GeofenceBroadcastReceiver>(requireContext())
+    // Using the FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling
+    // addGeofence() and removeGeofence().
+    PendingIntent.getBroadcast(
+      requireContext(),
+      Constants.GEOFENCE_INTENT_REQUEST_ID,
+      intent,
+      PendingIntent.FLAG_UPDATE_CURRENT
+    )
+  }
+  
+  override fun onAttach(context: Context?) {
+    super.onAttach(context)
+    when(context) {
+      is OnFragmentEventListener -> listener = context
+      else -> throw ClassCastException("$context should implement OnFragmentEventListener")
+    }
+  }
+  
+  override fun onDetach() {
+    super.onDetach()
+    listener = null
+  }
   
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -76,15 +106,8 @@ abstract class BaseFragment: Fragment(), Injectable {
     if (!checkPermissions()) {
       requestPermissions()
     } else {
-      startLocationUpdates()
       onPermissionGranted()
     }
-  }
-  
-  override fun onPause() {
-    super.onPause()
-    // Remove location updates to save battery
-    stopLocationUpdates()
   }
   
   /**
@@ -157,7 +180,7 @@ abstract class BaseFragment: Fragment(), Injectable {
       
       grantResults[0] == PackageManager.PERMISSION_GRANTED -> {
         // Permission granted...start location updates
-        startLocationUpdates()
+        //startLocationUpdates()
         onPermissionGranted()
       }
       
@@ -235,7 +258,7 @@ abstract class BaseFragment: Fragment(), Injectable {
    * It is good practice to remove location request when the activity is in a paused or stopped
    * state. Doing so helps battery performance.
    */
-  private fun stopLocationUpdates() {
+  protected fun stopLocationUpdates() {
     LogWrapper.d("Stopping location updates...")
     fusedLocationClient.removeLocationUpdates(locationCallback)
       .addOnCompleteListener {
@@ -263,7 +286,124 @@ abstract class BaseFragment: Fragment(), Injectable {
     }
   }
   
-  abstract fun onPermissionGranted()
+  protected fun buildGeofence(
+    id: String,
+    latLng: LatLng,
+    radius: Float): Geofence = Geofence.Builder()
+    .apply {
+    // Set a request ID of the geofence. This is a string to identify this
+    // geofence.
+    setRequestId(id)
+    
+    // Set the circular region of this geofence.
+    setCircularRegion(
+      latLng.latitude,
+      latLng.longitude,
+      radius
+    )
+    
+    // Set the transition types of interest. Alerts are only generated for these
+    // transition. We are only interested in entry transitions.
+    setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+    
+    // Set the expiration duration of the geofence. This geofence will exist until
+    // the user removes it
+    setExpirationDuration(Geofence.NEVER_EXPIRE)
+    
+  }.build() // Create the geofence.
+  
+  private fun createGeofenceRequest(geofence: Geofence): GeofencingRequest =
+    GeofencingRequest.Builder().apply {
+      // Trigger a  GEOFENCE_TRANSITION_ENTER notification if the device
+      // is already inside that geofence.
+      setInitialTrigger(Geofence.GEOFENCE_TRANSITION_ENTER)
+      
+      // Add the geofence to be monitored by geofencing service.
+      addGeofence(geofence)
+      
+    }.build() // Create the request
+  
+  
+  /**
+   * Adds geofences. This method should be called after the user has granted the location
+   * permission.
+   */
+  @SuppressLint("MissingPermission")
+  protected fun addGeofence(geofence: Geofence) {
+    geofencingClient
+      .addGeofences(createGeofenceRequest(geofence), geofencePendingIntent)
+      .run {
+        addOnSuccessListener {
+          // Geofence added
+          LogWrapper.d(getString(R.string.geofence_added))
+        }
+        
+        addOnFailureListener {
+          // Failed to add geofences
+          val errorMessage = GeofenceErrorMessages.getErrorString(requireContext(), it)
+          LogWrapper.e(errorMessage)
+        }
+      }
+  }
+  
+  protected fun removeGeofence(id: String) {
+    geofencingClient.removeGeofences(arrayListOf(id)).run {
+      addOnSuccessListener {
+        LogWrapper.d(getString(R.string.geofence_removed))
+      }
+      
+      addOnFailureListener {
+        val errorMessage = GeofenceErrorMessages.getErrorString(requireContext(), it)
+        LogWrapper.e(errorMessage)
+      }
+    }
+  }
+  
+  protected fun removeGeofences() {
+    LogWrapper.d("Removing all geofences")
+    geofencingClient.removeGeofences(geofencePendingIntent).run {
+      addOnSuccessListener {
+        LogWrapper.d(getString(R.string.geofences_removed))
+      }
+      
+      addOnFailureListener {
+        val errorMessage = GeofenceErrorMessages.getErrorString(requireContext(), it)
+        LogWrapper.e(errorMessage)
+      }
+    }
+  }
+  
+  protected open fun onPermissionGranted(){}
+  
+  
+  /**
+   * Receiver for geofence transition changes.
+   * <p>
+   * Receives geofence transition events from Location Services in the form of an Intent containing
+   * the transition type and geofence id(s) that triggered the transition. Creates a JobIntentService
+   * that will handle the intent in the background.
+   */
+  class GeofenceBroadcastReceiver : BroadcastReceiver() {
+    
+    /**
+     * Receives incoming intents.
+     *
+     * @param context the application context.
+     * @param intent  sent by Location Services. This Intent is provided to Location
+     *                Services (inside a PendingIntent) when addGeofence() is called.
+     */
+    override fun onReceive(context: Context, intent: Intent) {
+      // Enqueues a JobIntentService passing the context and intent as parameters
+      LogWrapper.d("Enqueuing Geofence transition job...")
+      GeofenceTransitionsJobIntentService.enqueueWork(context, intent)
+    }
+  }
+  
+  
+  interface OnFragmentEventListener {
+    fun onFragmentDisplayed(hideSearchBar: Boolean = true,
+                                     hideCurrentLocationFab: Boolean = true)
+  }
   
   companion object {
     //region Permission request code

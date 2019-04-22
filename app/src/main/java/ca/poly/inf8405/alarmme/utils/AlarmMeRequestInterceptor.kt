@@ -21,6 +21,7 @@ class AlarmMeRequestInterceptor @Inject constructor (
       original.url()
         .newBuilder()
         .addQueryParameter("appid", apiKey)
+        .addQueryParameter("units", "metric") //TODO: add metric change capabilities in App settings
         .build()
     
     val newRequest =

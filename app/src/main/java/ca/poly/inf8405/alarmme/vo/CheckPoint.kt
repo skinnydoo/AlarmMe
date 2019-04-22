@@ -30,8 +30,8 @@ data class CheckPoint(
   val latitude: Double,
   val longitude: Double,
   val radius: Int,
-  val active: Boolean = false,
-  val favorited: Boolean = false,
+  var active: Boolean = false,
+  var favorited: Boolean = false,
   @Embedded(prefix = "weather_")
   var weather: Weather? = null
 ) : Parcelable {
@@ -39,6 +39,7 @@ data class CheckPoint(
   @Parcelize
   data class Weather (
     @SerializedName(value ="id")
+    @ColumnInfo(name = "city_id")
     val id: Long,
     
     @SerializedName(value = "name")

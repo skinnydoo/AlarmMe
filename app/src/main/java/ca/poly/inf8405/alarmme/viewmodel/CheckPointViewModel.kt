@@ -14,6 +14,9 @@ class CheckPointViewModel @Inject constructor(
   private val checkPointRepository: CheckPointRepository
 ) : ViewModel() {
   
+  val allCheckPoints: LiveData<List<CheckPoint>>
+    get() = checkPointRepository.allCheckPoints
+  
   val activeCheckPoints: LiveData<List<CheckPoint>>
     get() = checkPointRepository.allActiveCheckPoints
   
@@ -42,6 +45,8 @@ class CheckPointViewModel @Inject constructor(
       _checkPointCity.value = checkPointCity
     }
   }
+  
+  fun updateCheckPoint(checkPoint: CheckPoint): Unit = checkPointRepository.update(checkPoint)
   
   
   /**

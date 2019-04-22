@@ -27,6 +27,6 @@ class DateTimeConverter : JsonSerializer<DateTime>, JsonDeserializer<DateTime> {
       return null
     }
     
-    return DateTime(json.asLong)
+    return DateTime(json.asLong * 1000)
   }
 }

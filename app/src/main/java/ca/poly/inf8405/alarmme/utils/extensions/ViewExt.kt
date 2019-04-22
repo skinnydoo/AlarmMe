@@ -1,8 +1,11 @@
 package ca.poly.inf8405.alarmme.utils.extensions
 
 import android.content.Context
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import com.google.android.material.snackbar.Snackbar
 
@@ -31,4 +34,8 @@ fun Context.showToast(@StringRes actionRes: Int, duration: Int = Toast.LENGTH_SH
 
 fun Context.showToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
   Toast.makeText(this, message, duration).show()
+}
+
+fun ViewGroup.inflate(@LayoutRes layoutRes: Int, attachToRoot: Boolean = false): View {
+  return LayoutInflater.from(context).inflate(layoutRes, this, attachToRoot)
 }

@@ -26,7 +26,8 @@ buildscript {
                 retrofit         : '2.5.0',
                 okhttp           : '3.14.0',
                 joda_time        : '2.10.1',
-                gson             : '2.8.5'
+                gson             : '2.8.5',
+                glide            : '4.9.0'
         ]
     }
 
@@ -37,7 +38,7 @@ buildscript {
 
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.2'
+        classpath 'com.android.tools.build:gradle:3.4.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "android.arch.navigation:navigation-safe-args-gradle-plugin:$versions.nav_version"
         // NOTE: Do not place your application dependencies here; they belong

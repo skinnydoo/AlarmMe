@@ -5,11 +5,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:fitsSystemWindows="false"
         tools:context=".ui.MainActivity"
-        android:focusableInTouchMode="true"
-        android:focusable="true"
         >
 
     <fragment
@@ -22,20 +18,22 @@
             />
 
     <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/search_bar_holder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_huge"
             >
 
         <androidx.cardview.widget.CardView
                 android:id="@+id/search_bar_container"
                 android:layout_width="0dp"
                 android:layout_height="45dp"
-                android:layout_marginTop="@dimen/spacing_huge"
                 android:layout_marginStart="@dimen/spacing_xlarger"
                 android:layout_marginEnd="@dimen/spacing_small"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:cardCornerRadius="@dimen/default_corner_radius"
                 >
 

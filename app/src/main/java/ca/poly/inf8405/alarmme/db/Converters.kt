@@ -31,6 +31,5 @@ object Converters {
     return Gson().toJson(list, type)
   }
   
-  
   // add more converters here...
 }

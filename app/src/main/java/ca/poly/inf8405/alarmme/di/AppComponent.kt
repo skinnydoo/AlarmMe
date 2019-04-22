@@ -27,6 +27,7 @@ import javax.inject.Singleton
 ])
 interface AppComponent {
   fun inject(alarmMeApp: AlarmMeApp)
+  fun inject(alarmMeGlideModule: AlarmMeGlideModule)
   
   @Component.Builder
   interface Builder {

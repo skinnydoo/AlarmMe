@@ -54,12 +54,6 @@ class ApiModule {
   fun provideCacheDuration(@ApplicationContext context: Context): Int = context.resources
     .getInteger(R.integer.cache_duration)
   
-  /*@Singleton
-  @Provides
-  fun provideRequestInterceptor(
-    @ApiKey(WEATHER_KEY) apiKey: String,
-    @CacheDuration cacheDuration: Int
-  ): AlarmMeRequestInterceptor = AlarmMeRequestInterceptor(apiKey, cacheDuration)*/
   
   @Singleton
   @Provides

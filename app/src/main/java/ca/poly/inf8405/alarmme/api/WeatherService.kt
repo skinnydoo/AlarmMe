@@ -30,19 +30,17 @@ interface WeatherService {
   ): LiveData<ApiResponse<CheckPoint.Weather>>
   
   /**
-   * Get the current weather by city name.
+   * Get the current weather by city id.
    *
-   * @param cityName The name of the city
+   * @param cityId The id of the city
    *
    * @GET declares an HTTP GET request.
-   * @Query("q") annotation on the [cityName] parameter marks it as a
+   * @Query("id") annotation on the [cityId] parameter marks it as a
    * parameter name in the @GET path.
-   * @Query("appid") annotation on the [apiKey] parameter marks it as a
-   * parameter name in the @GET path
    */
   @GET(value = "weather")
   fun getCurrentWeather(
-    @Query(value = "q") cityName: String
+    @Query(value = "id") cityId: Long
   ): LiveData<ApiResponse<CheckPoint.Weather>>
   
 }

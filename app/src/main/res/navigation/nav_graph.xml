@@ -11,5 +11,31 @@
             android:name="ca.poly.inf8405.alarmme.ui.homescreen.MapFragment"
             android:label="@string/explore"
             tools:layout="@layout/fragment_map"
-            />
+            >
+        <action
+                android:id="@+id/next_action"
+                app:destination="@id/alarm_list_dest"
+                />
+    </fragment>
+    <fragment
+            android:id="@+id/alarm_list_dest"
+            android:name="ca.poly.inf8405.alarmme.ui.alarmscreen.AlarmListFragment"
+            android:label="@string/alarms"
+            >
+        <action
+                android:id="@+id/next_action"
+                app:destination="@id/detail_dest"
+                />
+    </fragment>
+    <fragment
+            android:id="@+id/detail_dest"
+            android:name="ca.poly.inf8405.alarmme.ui.detailscreen.DetailFragment"
+            android:label="@string/detail"
+            tools:layout="@layout/fragment_detail"
+            >
+        <argument
+                android:name="checkPoint"
+                app:argType="ca.poly.inf8405.alarmme.vo.CheckPoint"
+                />
+    </fragment>
 </navigation>

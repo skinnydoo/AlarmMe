@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/detail_container"
+        tools:context=".ui.detailscreen.DetailFragment">
+
+    <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/app_bar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/app_bar_height"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            >
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:contentScrim="?attr/colorAccent"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                >
+
+            <ImageView
+                    android:id="@+id/check_point_weather_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/weather_condition_image_desc"
+                    />
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            >
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+
+            <TextView
+                    android:id="@+id/check_point_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:textColor="@color/black"
+                    tools:text="Work"
+                    android:textAppearance="?android:textAppearanceLarge"
+                    android:layout_marginTop="@dimen/spacing_normal"
+                    />
+
+            <TextView
+                    android:id="@+id/check_point_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:textColor="@color/black"
+                    tools:text="Remember to clock in"
+                    android:textAppearance="?android:textAppearanceMedium"
+                    />
+
+            <TextView
+                    android:id="@+id/check_point_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:textColor="@color/green"
+                    tools:text="Active"
+                    android:textAppearance="?android:textAppearanceMedium"
+                    android:layout_marginBottom="@dimen/spacing_normal"
+                    />
+
+            <com.google.android.gms.maps.MapView
+                    xmlns:map="http://schemas.android.com/apk/res-auto"
+                    android:id="@+id/map_lite"
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    map:liteMode="true"
+                    />
+
+
+            <TextView
+                    android:id="@+id/check_point_city_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:layout_marginTop="@dimen/spacing_normal"
+                    tools:text="Longueuil"
+                    android:textColor="@color/black"
+                    android:textAppearance="?android:textAppearanceLarge"
+                    />
+
+            <TextView
+                    android:id="@+id/check_point_weather_desc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    tools:text="Sunday: sky is clear"
+                    android:textColor="@color/black"
+                    android:textAppearance="?android:textAppearanceSmall"
+                    />
+
+            <TextView
+                    android:id="@+id/check_point_weather_temp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    tools:text="16°"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/font_xxxlarge"
+                    />
+
+            <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:useDefaultMargins="true"
+                    android:columnCount="2"
+                    >
+
+                <TextView
+                        android:id="@+id/check_point_weather_min_temp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_column="0"
+                        android:layout_row="0"
+                        tools:text="Low: 16°"
+                        android:textColor="@color/black"
+                        android:gravity="center"
+                        android:layout_gravity="fill_horizontal"
+                        android:layout_columnWeight="1"
+                        />
+
+                <TextView
+                        android:id="@+id/check_point_weather_max_temp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_column="1"
+                        android:layout_row="0"
+                        tools:text="High: 20°"
+                        android:textColor="@color/black"
+                        android:gravity="center"
+                        android:layout_gravity="fill_horizontal"
+                        android:layout_columnWeight="1"
+                        />
+
+                <TextView
+                        android:id="@+id/check_point_weather_pressure"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_column="0"
+                        android:layout_row="1"
+                        tools:text="Pressure: 1016 hPa"
+                        android:textColor="@color/black"
+                        android:gravity="center"
+                        android:layout_gravity="fill_horizontal"
+                        android:layout_columnWeight="1"
+                        />
+
+                <TextView
+                        android:id="@+id/check_point_weather_humidity"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_column="1"
+                        android:layout_row="1"
+                        tools:text="Humidity: 50%"
+                        android:textColor="@color/black"
+                        android:gravity="center"
+                        android:layout_gravity="fill_horizontal"
+                        android:layout_columnWeight="1"
+                        />
+
+                <TextView
+                        android:id="@+id/check_point_sunrise"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_column="0"
+                        android:layout_row="2"
+                        tools:text="Sunrise: 05:55"
+                        android:textColor="@color/black"
+                        android:gravity="center"
+                        android:layout_gravity="fill_horizontal"
+                        android:layout_columnWeight="1"
+                        />
+
+                <TextView
+                        android:id="@+id/check_point_sunset"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_column="1"
+                        android:layout_row="2"
+                        tools:text="Sunset: 19:46"
+                        android:textColor="@color/black"
+                        android:gravity="center"
+                        android:layout_gravity="fill_horizontal"
+                        android:layout_columnWeight="1"
+                        />
+            </GridLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

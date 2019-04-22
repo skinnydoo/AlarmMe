@@ -30,7 +30,7 @@ interface CheckPointDao: BaseDao<CheckPoint> {
   fun findCheckPointByIdSync(id: String) : CheckPoint
   
   // Find checkpoint current weather city id
-  @Query("SELECT * FROM checkpoint_table WHERE weather_id = :cityId")
+  @Query("SELECT * FROM checkpoint_table WHERE weather_city_id = :cityId")
   fun findCheckPointByWeatherId(cityId: Long): LiveData<CheckPoint>
   
   // Find checkpoint current weather by city name

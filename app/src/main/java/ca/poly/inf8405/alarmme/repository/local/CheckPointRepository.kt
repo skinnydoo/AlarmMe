@@ -52,6 +52,26 @@ class CheckPointRepository @Inject constructor(
     }.asLiveData()
   }
   
+  // region Network Bound Resource queries
+  fun loadUpdatedCurrentWeather(checkPoint: CheckPoint) :
+    LiveData<Resource<CheckPoint>> {
+    return object : NetworkBoundResource<CheckPoint, CheckPoint.Weather>() {
+      override fun loadFromDb(): LiveData<CheckPoint> =
+        checkPointDao.findCheckPointByWeatherId(checkPoint.weather!!.id)
+      
+      override fun shouldFetch(data: CheckPoint?): Boolean = true // always fetch
+      
+      override fun createCall(): LiveData<ApiResponse<CheckPoint.Weather>> =
+        weatherService.getCurrentWeather(checkPoint.weather!!.id)
+      
+      override fun saveCallResult(item: CheckPoint.Weather) {
+        checkPoint.weather = item
+        checkPointDao.update(checkPoint)
+      }
+      
+    }.asLiveData()
+  }
+  
   // region Database Insertion
   /**
    * Insert a CheckPoint item
@@ -61,6 +81,9 @@ class CheckPointRepository @Inject constructor(
     checkPointDao.insert(checkPoint)
   }
   
+  fun update(checkPoint: CheckPoint) = diskIOThread {
+    checkPointDao.update(checkPoint)
+  }
   /**
    * Insert a list of CheckPoints into the database
    * This method will be called on a non-UI thread cause other else the app will crash.
