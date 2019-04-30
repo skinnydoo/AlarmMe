@@ -19,6 +19,7 @@ import androidx.navigation.ui.setupWithNavController
 import ca.poly.inf8405.alarmme.R
 import ca.poly.inf8405.alarmme.utils.LogWrapper
 import ca.poly.inf8405.alarmme.viewmodel.CheckPointViewModel
+import com.google.android.libraries.places.api.Places
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
@@ -60,10 +61,10 @@ class MainActivity : AppCompatActivity(),
     }
     
     // Initialize Places
-    /*val apiKey = getString(R.string.google_maps_api_key)
+    val apiKey = getString(R.string.google_maps_api_key)
     if(!Places.isInitialized()) {
       Places.initialize(applicationContext, apiKey)
-    }*/
+    }
     
     registerReceiver(batteryInfoReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
     
@@ -109,6 +110,7 @@ class MainActivity : AppCompatActivity(),
       }
   
       LogWrapper.d("Battery percent -> ${batteryPct?.toInt()}%")
+      battery_info?.text = getString(R.string.battery, batteryPct, "%")
     }
   }
 }

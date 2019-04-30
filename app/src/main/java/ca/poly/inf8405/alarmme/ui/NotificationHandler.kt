@@ -9,16 +9,16 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
-import ca.poly.inf8405.alarmme.BuildConfig
-import ca.poly.inf8405.alarmme.R
 import ca.poly.inf8405.alarmme.di.qualifier.ApplicationContext
 import ca.poly.inf8405.alarmme.service.Constants
 import ca.poly.inf8405.alarmme.utils.extensions.newIntent
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val CHANNEL_ID = "${BuildConfig.APPLICATION_ID}.channel"
-private const val NOTIFICATION_ID = 0x1
+
+
+private const val CHANNEL_ID = "channel_3251"
+private const val NOTIFICATION_ID = 0
 
 @Singleton
 class NotificationHandler @Inject constructor(
@@ -47,14 +47,14 @@ class NotificationHandler @Inject constructor(
     // Create a notification
     val notification = NotificationCompat.Builder(context, CHANNEL_ID).apply {
       // Define the notification settings
-      setSmallIcon(R.drawable.ic_notification_white)
+      setSmallIcon(ca.poly.inf8405.alarmme.R.drawable.ic_notification_white)
       setContentTitle(locationName)
       setContentText(message)
       setContentIntent(notificationPendingIntent)
       setShowWhen(true)
       setDefaults(NotificationCompat.DEFAULT_ALL)
-      setCategory(NotificationCompat.CATEGORY_REMINDER)
-      color = ContextCompat.getColor(context, R.color.colorAccent)
+      //setCategory(NotificationCompat.CATEGORY_REMINDER)
+      color = ContextCompat.getColor(context, ca.poly.inf8405.alarmme.R.color.colorAccent)
       setAutoCancel(true) // Dismiss notification once the user touches it.
     }.build()
     
@@ -68,11 +68,13 @@ class NotificationHandler @Inject constructor(
   private fun createNotificationChannel() {
     // Android O requires a Notification channel
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      val name = context.getString(R.string.app_name)
+      val name = context.getString(ca.poly.inf8405.alarmme.R.string.app_name)
+      val importance = NotificationManager.IMPORTANCE_HIGH
       // Create the channel for the notification
-      val channel = NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_DEFAULT).apply {
-        enableVibration(true)
+      val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
         enableLights(true)
+        enableVibration(true)
+        //vibrationPattern = longArrayOf(100, 200, 300, 400, 500, 400, 300, 200, 400)
       }
       // Get an instance of the Notification manager
       val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as

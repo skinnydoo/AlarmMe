@@ -19,7 +19,7 @@
             android:theme="@style/AppTheme"
             tools:ignore="GoogleAppIndexingWarning">
         <receiver
-                android:name=".ui.homescreen.MapFragment$GeofenceBroadcastReceiver"
+                android:name=".ui.BaseFragment$GeofenceBroadcastReceiver"
                 android:enabled="true"
                 android:exported="true">
         </receiver>

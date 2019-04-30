@@ -30,6 +30,7 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.material.snackbar.Snackbar
 import javax.inject.Inject
 
@@ -60,8 +61,8 @@ abstract class BaseFragment: Fragment(), Injectable {
   lateinit var geofencingClient: GeofencingClient
   
   // Provides access to the Places Api Client
-  /*@Inject
-  lateinit var placesClient: PlacesClient*/
+  @Inject
+  lateinit var placesClient: PlacesClient
   
   // Callback for location events
   private lateinit var locationCallback: LocationCallback
@@ -126,7 +127,7 @@ abstract class BaseFragment: Fragment(), Injectable {
   /**
    * Return the current state of the permissions needed
    */
-  private fun checkPermissions(): Boolean {
+  protected fun checkPermissions(): Boolean {
     val permissionState =
       ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
     return permissionState == PackageManager.PERMISSION_GRANTED

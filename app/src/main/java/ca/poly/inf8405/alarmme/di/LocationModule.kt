@@ -3,6 +3,8 @@ package ca.poly.inf8405.alarmme.di
 import android.content.Context
 import ca.poly.inf8405.alarmme.di.qualifier.ApplicationContext
 import com.google.android.gms.location.*
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.net.PlacesClient
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -21,11 +23,11 @@ class LocationModule {
   fun provideSettingsClient(@ApplicationContext context: Context): SettingsClient =
     LocationServices.getSettingsClient(context)
   
- /* @Singleton
+  @Singleton
   @Provides
   fun providePlacesClient(
     @ApplicationContext context: Context
-  ) : PlacesClient = Places.createClient(context)*/
+  ) : PlacesClient = Places.createClient(context)
   
   @Singleton
   @Provides

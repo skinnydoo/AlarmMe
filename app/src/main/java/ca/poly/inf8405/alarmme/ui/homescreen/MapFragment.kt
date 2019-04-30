@@ -204,7 +204,9 @@ class MapFragment : BaseFragment(),
         handleMarkerClick(it)
       }
     }
-    onPermissionGranted()
+    if (checkPermissions()){
+      onPermissionGranted()
+    }
     LogWrapper.d("Exit")
   }
   

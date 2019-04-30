@@ -58,8 +58,6 @@
     <string name="msg_already_near_location">You are already close to the specified location</string>
     <string name="hint_location_name">Location Name</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="check_point_weather_description">Weather</string>
     <string name="weather_condition_image_desc">A graphical representation of the weather conditions</string>
     <string name="detail">Detail</string>
@@ -73,5 +71,6 @@
     <string name="pressure">Pressure: %.0f hPa</string>
     <string name="sunrise">Sunrise: %s</string>
     <string name="sunset">Sunset: %s</string>
+    <string name="battery">Battery: %1$.0f%2$s</string>
 
 </resources>
